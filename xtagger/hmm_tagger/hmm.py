@@ -99,16 +99,3 @@ class HiddenMarkovModel():
         difference = end-start
         print("Time taken: {}s".format(difference))
         return tagged_seq
-
-
-
-
-
-
-
-
-
-
-
-
-
