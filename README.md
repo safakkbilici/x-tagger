@@ -10,6 +10,7 @@ Provided token classification algorithms:
 - Hidden Markov Model with Viterbi Decoding
   * bigram
   * trigram
+  * deleted interpolation (Jelinek and Mercer, 1980)
 
 - Long Short-Term Memory
   * unidirectional
