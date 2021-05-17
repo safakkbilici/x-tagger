@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-class LSTMForPOSTagging(nn.Module):
+class LSTM(nn.Module):
     def __init__(self, input_dim, embedding_dim, hidden_dim, output_dim, n_layers, bidirectional, dropout, pad_idx):
 
         super().__init__()
