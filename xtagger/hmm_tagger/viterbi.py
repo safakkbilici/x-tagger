@@ -91,7 +91,3 @@ class Viterbi(object):
 
     def get_type(self):
         return self.extend_to
-
-
-
-
