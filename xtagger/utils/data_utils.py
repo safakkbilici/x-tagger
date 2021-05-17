@@ -17,7 +17,7 @@ def save_as_pickle(hmm_dataset, name):
     with open(f"{name}.pkl", wb) as handle:
         pickle.dump(train_data2list, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-def xtagger_dataset_to_df(df, dataset, row_as_list=False):
+def xtagger_dataset_to_df(dataset, row_as_list=False):
     df = pd.DataFrame(columns = ["sentence", "tags"])
     for sentence in dataset:
         d = {}
@@ -36,7 +36,7 @@ def xtagger_dataset_to_df(df, dataset, row_as_list=False):
 def df_to_torchtext_data(df_train, df_test, device, batch_size, min_freq = 2,
                          pretrained_embeddings = False):
     df_train.to_csv("train.csv",index=False)
-    df_train.to_csv("test.csv",index=False)
+    df_test.to_csv("test.csv",index=False)
 
     TEXT = data.Field(lower = True)
     TAGS = data.Field(unk_token = None)
@@ -88,5 +88,5 @@ def df_to_torchtext_data(df_train, df_test, device, batch_size, min_freq = 2,
         device = device
     )
 
-    return train_iterator, valid_iterator, test_iterator
+    return train_iterator, valid_iterator, test_iterator, TEXT, TAGS
 
