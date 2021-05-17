@@ -2,6 +2,19 @@ import pandas as pd
 from tqdm import tqdm
 import pickle
 
+def df_to_hmm_dataset(df):
+    data2list = []
+    for index, row in tqdm(df.iterrows(), total = df.shape[0]):
+        ner_tags = row["ner_tags"]
+        tokens = row["tokens"]
+        mapped = list(map(lambda x, y: (x,y), tokens, ner_tags))
+        data2list.append(mapped)
+    return data2list
+
+def save_as_pickle(hmm_dataset, name):
+    with open(f"{name}.pkl", wb) as handle:
+        pickle.dump(train_data2list, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
 def get_emission(word, tag, train_bag):
     tag_list = [pair for pair in train_bag if pair[1]==tag]
     count_tag = len(tag_list)
@@ -34,15 +47,4 @@ def get_transition_2(tag1, tag2, tag3, train_bag):
             pass
     return count_tag1_tag2_tag3, count_tag1_tag2
 
-def df_to_hmm_dataset(df):
-    data2list = []
-    for index, row in tqdm(df.iterrows(), total = df.shape[0]):
-        ner_tags = row["ner_tags"]
-        tokens = row["tokens"]
-        mapped = list(map(lambda x, y: (x,y), tokens, ner_tags))
-        data2list.append(mapped)
-    return data2list
 
-def save_as_pickle(hmm_dataset, name):
-    with open(f"{name}.pkl", wb) as handle:
-        pickle.dump(train_data2list, handle, protocol=pickle.HIGHEST_PROTOCOL)
