@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from tqdm import tqdm
 import pickle
 
@@ -35,3 +36,37 @@ def get_transition_2(tag1, tag2, tag3, train_bag):
     return count_tag1_tag2_tag3, count_tag1_tag2
 
 
+def deleted_interpolation(tags, train_tagged_words):
+    lambdas = [0] * 3
+    for i, tag1 in enumerate(tqdm(list(tags))):
+        for j, tag2 in enumerate(list(tags)):
+            for k, tag3 in enumerate(list(tags)):
+                max_list = []
+                N = len(train_tagged_words)
+                count_t3 = len([tup[1] for tup in train_tagged_words if tup[1] == tag3])
+
+                count_t2 = len([tup[1] for tup in train_tagged_words if tup[1] == tag2])
+
+
+                count_t2t3, count_t3 = get_transition(tag2, tag3, train_tagged_words)
+                count_t1t2, count_t2 = get_transition(tag1, tag2, train_tagged_words)
+
+                count_t1t2t3, count_t1t2 = get_transition_2(tag1, tag2, tag3, train_tagged_words)
+                try:
+                    max_list.append((count_t3 - 1) / (N-1))
+                    max_list.append((count_t2t3 - 1) / (count_t2 - 1))
+                    max_list.append((count_t1t2t3 - 1) / (count_t1t2 - 1))
+
+                    if count_t1t2t3 > 0:
+                        lmax = max(max_list)
+                        lmax_idx = max_list.index(lmax)
+                        lambdas[lmax_idx] += 1
+                except:
+                    pass
+
+    total_sum = np.sum(lambdas)
+    lambdas[0] /= total_sum
+    lambdas[1] /= total_sum
+    lambdas[2] /= total_sum
+
+    return lambdas

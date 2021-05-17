@@ -11,9 +11,10 @@ class Viterbi(object):
         self.indexing = indexing
         self.extend_to = extend_to
         self.train_set = train_set
+        self.extended = ["bigram", "trigram","deleted_interpolation"]
         self.start = start
-
-        if (self.extend_to != "bigram") and (self.extend_to != "trigram"):
+        
+        if self.extend_to not in self.extended:
             raise ValueError("Higher than trigrams are not currently supported. Would you want to contribute?")
 
     def fit_bigram(self):
