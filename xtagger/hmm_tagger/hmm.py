@@ -83,10 +83,10 @@ class HiddenMarkovModel():
             return "Done."
 
     def predict(self, words):
-        viterbi_object = Viterbi(test_tagged_words, self.tag2tag_matrix, self.train_tagged_words,
+        viterbi_object = Viterbi(words, self.tag2tag_matrix, self.train_tagged_words,
                                  self.extend_to, self.start_token, self.indexing)
 
-        if self.extent_to == "bigram":
+        if self.extend_to == "bigram":
             start = time.time()
             tagged_seq = viterbi_object.fit_bigram()
             end = time.time()
