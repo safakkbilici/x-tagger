@@ -3,4 +3,7 @@ sklearn
 pandas
 tqdm==4.50.2
 pickle
+spacy==3.0.5
+torchtext
+torch==1.7.1
 
