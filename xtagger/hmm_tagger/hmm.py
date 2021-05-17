@@ -14,8 +14,8 @@ class HiddenMarkovModel():
         self.test_set = test_set
         self.indexing = indexing
         self.start_token = start_token
-
-        if (self.extend_to != "bigram") and (self.extend_to != "trigram"):
+        self.extended = ["bigram", "trigram","interpolation"]
+        if self.extend not in self.extended:
             raise ValueError("Higher than trigrams are not currently supported. Would you want to contribute?")
 
 
@@ -33,7 +33,7 @@ class HiddenMarkovModel():
                     p_t1t2, pt1 = get_transition(tag2, tag1, self.train_tagged_words)
                     self.tag2tag_matrix[i, j] = p_t1t2/pt1
 
-        else:
+        elif self.extend_to == "trigram":
             self.tag2tag_matrix = np.zeros((len(self.tags),len(self.tags), len(self.tags)), dtype='float32')
 
             for i, tag1 in enumerate(tqdm(list(self.tags))):
@@ -41,6 +41,20 @@ class HiddenMarkovModel():
                     for k, tag3 in enumerate(list(self.tags)):
                         p_t1t2t3, p_t1t2 = get_transition_2(tag2, tag1, tag3, self.train_tagged_words)
                         self.tag2tag_matrix[i, j, k] = p_t1t2t3/p_t1t2
+
+        #elif self.extend_to == "deleted_interpolation":
+        #    self.tag2tag_matrix = np.zeros((len(self.tags),len(self.tags), len(self.tags)), dtype='float32')
+        #    for i, tag1 in enumerate(tqdm(list(self.tags))):
+        #        for j, tag2 in enumerate(list(self.tags)):
+        #            for k, tag3 in enumerate(list(self.tags)):
+        #                N = len(self.train_tagged_words)
+        #                p_t3 = len([tup[1] for tup in self.train_tagged_words if tup[1] == tag3]) / N
+        #
+        #                p_t2t3, p_t3 = get_transition(tag2, tag3, self.train_tagged_words)
+        #
+        #                p_t1t2t3, p_t1t2 = get_transition_2(tag1, tag2, tag3, self.train_tagged_words)
+        #                lambda1, lambda2, lambda3 = deleted_interpolation(self.train_tagged_words)
+        #                self.tag2tag_matrix[i, j, k] = p_t1t2t3/p_t1t2
 
 
     def evaluate(self, random_size = 10, all_test_set = False, seed = None, return_all=False):
