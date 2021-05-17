@@ -165,12 +165,3 @@ class LSTMForTagging(object):
         predicted_tags = [self.TAGS.vocab.itos[t.item()] for t in top_predictions]
 
         return tokens, predicted_tags, unks
-
-
-
-
-
-
-
-
-
