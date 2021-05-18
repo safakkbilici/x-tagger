@@ -127,7 +127,7 @@ x-tagger supports only Hidden Markov Model with its extensions (viterbi decoding
 
 ### Hidden Markov Models
 
-- You can train your **bigram** Hidden Markov Model:
+You can train your **bigram** Hidden Markov Model:
 
 ```python
 import nltk
@@ -175,7 +175,7 @@ output:
   ('great', 'ADJ')]
 ```
 
-- You can train your **trigram** Hidden Markov Model:
+You can train your **trigram** Hidden Markov Model:
 
 ```python
 import nltk
@@ -191,7 +191,7 @@ hmm.fit()
 hmm.evaluate()
 ```
 
-- Or you can modify trigram Hidden Markov Model with **Deleted Interpolation** as proposed in Jelinek and Mercer 1980.
+Or you can modify trigram Hidden Markov Model with **Deleted Interpolation** as proposed in Jelinek and Mercer 1980.
 
 ```python
 import nltk
