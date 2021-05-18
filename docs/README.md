@@ -249,6 +249,52 @@ model.load_best_model("lstm_save_best.pt")
 
 ### BERT
                        
-                       
+For BERT, we use 🤗 datasets interface. It is still in developement, but you can train your BERT for token classification (using x-tagger dataset, as always):
+
+```python
+import nltk
+from sklearn.model_selection import train_test_split
+from transformers import AutoTokenizer
+
+import torch
+from xtagger import LSTMForTagging
+from xtagger import xtagger_dataset_to_df, df_to_hf_dataset
+from xtagger import BERTForTagging
+
+nltk_data = list(nltk.corpus.treebank.tagged_sents(tagset='universal'))
+train_set,test_set =train_test_split(nltk_data,train_size=0.8,test_size=0.2,random_state = 2112)
+
+df_train = xtagger_dataset_to_df(train_set)
+df_test = xtagger_dataset_to_df(test_set)
+
+train_tagged_words = [tup for sent in train_set for tup in sent]
+tags = {tag for word,tag in train_tagged_words}
+tags = list(tags)
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+tokenizer = AutoTokenizer.from_pretrained("./path_to_tokenizer")
+
+dataset_train = df_to_hf_dataset(df_train, tags, tokenizer, device)
+dataset_test = df_to_hf_dataset(df_test, tags, tokenizer, device)
+
+from xtagger import BERTForTagging
+model = BERTForTagging(dataset_train, dataset_test,  "./path/to/bert", device, tags, tokenizer)
+
+model.fit()
+model.evaluate()
+````
+
+you can easily change your BERT model's hyperparameters at its constructor and ```.fit()``` method.
+
+```
+model = BERTForTagging(dataset_train, dataset_test, "./path/to/bert", device, 
+                       tags, tokenizer, cuda=True, learning_rate = 2e-5, 
+                       train_batch_size=4, eval_batch_size=4, epochs=3, weight_decay=0.1)
+```
+
+
+                      
+
+
 
 
