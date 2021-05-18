@@ -16,6 +16,8 @@ Provided token classification algorithms:
   * unidirectional
   * bidirectional
 
+- BERT
+
 , for now.
 
 ## Examples
