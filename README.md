@@ -18,8 +18,8 @@ Provided token classification algorithms:
 
 - BERT
 
-, for now.
+for now.
 
 ## Examples
 
-For detailed examples, please see docs.
+For detailed examples, please see [docs](https://github.com/safakkbilici/x-tagger/blob/main/docs/README.md).
