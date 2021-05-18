@@ -92,6 +92,6 @@ train_iterator, valid_iterator, test_iterator, TEXT, TAGS = df_to_torchtext_data
 
 train, test and validation variables are ```torchtext.data.iterator.BucketIterator``` and TEXT, TAGS variables are ```torchtext.data.field.Field```
 
-## x-tagger Dataset to 
+## x-tagger Dataset to 🤗 datasets
 
 
