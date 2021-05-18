@@ -92,16 +92,3 @@ class BERTForTagging():
 
     def load_model(self, save_name):
         self.model.load_state_dict(torch.load(save_name))
-
-
-
-
-
-
-
-
-
-
-
-
-
