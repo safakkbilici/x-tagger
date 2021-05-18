@@ -94,4 +94,33 @@ train, test and validation variables are ```torchtext.data.iterator.BucketIterat
 
 ## x-tagger Dataset to 🤗 datasets
 
+x-tagger uses 🤗 datasets for state-of-the-art models like BERT for token classification. So it is more effective to convert x-tagger dataset to 🤗 dataset format:
+
+```python
+import nltk
+from sklearn.model_selection import train_test_split
+import torch
+
+from xtagger import xtagger_dataset_to_df
+from xtagger import df_to_hf_dataset
+
+nltk_data = list(nltk.corpus.treebank.tagged_sents(tagset='universal'))
+train_set,test_set =train_test_split(nltk_data,train_size=0.8,test_size=0.2,random_state = 2112)
+
+df_train = xtagger_dataset_to_df(train_set, row_as_list=True)
+df_test = xtagger_dataset_to_df(test_set, row_as_list=True)
+
+train_tagged_words = [tup for sent in train_set for tup in sent]
+tags = {tag for word,tag in train_tagged_words}
+tags = list(tags)
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+tokenizer = AutoTokenizer.from_pretrained("./path_to_tokenizer")
+
+
+dataset_train = df_to_hf_dataset(df_train, tags, tokenizer, device)
+dataset_test = df_to_hf_dataset(df_test, tags, tokenizer, device)
+```
+
+
 
