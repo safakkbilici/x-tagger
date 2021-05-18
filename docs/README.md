@@ -286,7 +286,7 @@ model.evaluate()
 
 you can easily change your BERT model's hyperparameters at its constructor and ```.fit()``` method.
 
-```
+```python
 model = BERTForTagging(dataset_train, dataset_test, "./path/to/bert", device, 
                        tags, tokenizer, cuda=True, learning_rate = 2e-5, 
                        train_batch_size=4, eval_batch_size=4, epochs=3, weight_decay=0.1)
