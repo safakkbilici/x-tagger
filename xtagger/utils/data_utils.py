@@ -66,12 +66,12 @@ def df_to_torchtext_data(df_train, df_test, device, batch_size, min_freq = 2,
         TEXT.build_vocab(train_data,
                          min_freq = min_freq,
                          vectors = "glove.6B.100d",
-                         #unk_init = torch.Tensor.nor
+                         #unk_init = torch.Tensor.normal_
         )
     else:
         TEXT.build_vocab(train_data,
                          min_freq = min_freq,
-                         #unk_init = torch.Tensor.nor
+                         #unk_init = torch.Tensor.normal_
         )
 
     TEXT.build_vocab(train_data)
@@ -101,16 +101,11 @@ def tokenize_and_align_labels(examples, tokenizer, tags, label_all_tokens):
         previous_word_idx = None
         label_ids = []
         for word_idx in word_ids:
-            # Special tokens have a word id that is None. We set the label to -100 so they are automatically
-            # ignored in the loss function.
             if word_idx is None:
                 label_ids.append(-100)
-            # We set the label for the first token of each word.
             elif word_idx != previous_word_idx:
                 idx = tags.index(label[word_idx])
                 label_ids.append(idx)
-            # For the other tokens in a word, we set the label to either the current label or -100, depending on
-            # the label_all_tokens flag.
             else:
                 idx = tags.index(label[word_idx])
                 label_ids.append(idx if label_all_tokens else -100)
@@ -127,8 +122,3 @@ def df_to_hf_dataset(df, tags, tokenizer, device, label_all_tokens=True):
                           fn_kwargs = {'tokenizer': tokenizer,'tags': tags, 'label_all_tokens': label_all_tokens},
                           batched = True)
     return dataset
-
-
-
-
-
