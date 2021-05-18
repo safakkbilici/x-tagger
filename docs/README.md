@@ -55,6 +55,18 @@ columns ```sentence``` and ```tags``` has form of string:
 | This phrase once again                | DET NOUN ADV ADV           |
 | their employees help themselves       | PRON NOUN VERB PRON    |
 
+if you want to get them as a list:
+
+```python3
+df_train = xtagger_dataset_to_df(train_set, row_as_list=True)
+df_test = xtagger_dataset_to_df(test_set, row_as_list=True)
+```
+
+| sentences                       | tags        |
+|---------------------------------|-------------|
+| ["This", "phrase", "once", "again"]                | ["DET", "NOUN", "ADV", "ADV"]           |
+| ["their", "employees", "help", "themselves"]       | ["PRON", "NOUN", "VERB", "PRON"]    |
+
 
 
 
