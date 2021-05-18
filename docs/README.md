@@ -206,3 +206,49 @@ hmm = HiddenMarkovModel(train_set, test_set, extend_to = "deleted_interpolation"
 hmm.fit()
 hmm.evaluate()
 ```
+
+### Long Short-Term Memory (LSTM)
+
+You can train your **unidirectional or bidirectional** Long Short-Term Memory:
+
+```python
+import nltk
+from sklearn.model_selection import train_test_split
+
+import torch
+from xtagger import LSTMForTagging
+from xtagger import xtagger_dataset_to_df, df_to_torchtext_data
+
+
+nltk_data = list(nltk.corpus.treebank.tagged_sents(tagset='universal'))
+train_set,test_set =train_test_split(nltk_data,train_size=0.8,test_size=0.2,random_state = 2112)
+
+df_train = xtagger_dataset_to_df(train_set)
+df_test = xtagger_dataset_to_df(test_set)
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+train_iterator, valid_iterator, test_iterator, TEXT, TAGS = df_to_torchtext_data(df_train, df_test, device, batch_size=32)
+
+model = LSTMForTagging(train_iterator, valid_iterator, TEXT, TAGS)
+
+model.fit()
+
+model.predict("hello world i am doing great")
+```
+
+you can easily change your LSTM model's hyperparameters at its constructor and ```.fit()``` method.
+
+```python
+model = LSTMForTagging(train_iterator, valid_iterator, TEXT, TAGS,
+                       embedding_dim=100, hidden_dim=128, n_layers = 2,
+                       bidirectional=True, dropout=0.25, cuda=True)
+                    
+model.fit(epochs=10, save_name = "lstm_save_best.pt")
+model.load_best_model("lstm_save_best.pt")
+```
+
+### BERT
+                       
+                       
+
+
