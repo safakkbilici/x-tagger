@@ -143,7 +143,7 @@ hmm.fit()
 hmm.evaluate()
 ```
 
-```HiddenMarkovModel.evaluate()``` takes more time than ```HiddenMarkovModel.fit()``` as expected. ```HiddenMarkovModel.evaluate()``` evaluates 10 random datapoint from your test set without fixed seed. You can evaluate with custom n-datapoint, seed, or you can evaluate your entire test set:
+```xtagger.HiddenMarkovModel.evaluate()``` takes more time than ```xtagger.HiddenMarkovModel.fit()``` as expected. ```xtagger.HiddenMarkovModel.evaluate()``` evaluates 10 random datapoint from your test set without fixed seed. You can evaluate with custom n-datapoint, seed, or you can evaluate your entire test set:
 
 ```python
 hmm.evaluate(seed=2112)
@@ -151,12 +151,29 @@ hmm.evaluate(random_size=30, seed=137)
 hmm.evaluate(all_test_set = True)
 ```
 
-if you want to get tokens from  ```HiddenMarkovModel.evaluate()```:
+if you want to get tokens from  ```xtagger.HiddenMarkovModel.evaluate()```:
 
 ```python
 hmm.evaluate(random_size=30, return_all=True)
 ```
+After training you can easily get tokens for sentences:
 
+```
+hmm = HiddenMarkovModel(train_set, test_set, extend_to = "bigram")
+hmm.fit()
+
+hmm.predict(["hello","world","i","am","doing","great"])
+```
+
+```
+output:
+  ('hello', 'ADV'),
+  ('world', 'NOUN'),
+  ('i', 'ADV'),
+  ('am', 'VERB'),
+  ('doing', 'VERB'),
+  ('great', 'ADJ')]
+```
 
 
 
