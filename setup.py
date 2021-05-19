@@ -22,7 +22,10 @@ setup(
         "torchtext",
     ],
     classifiers=[
+        'Development Status :: 1 - Beta',
+        'Intended Audience :: Developers',
+        'Topic :: Scientific/Engineering :: Artificial Intelligence',
+        'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3.7',
-        'Development Status :: Beta'
     ],
 )
