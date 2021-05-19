@@ -2,9 +2,9 @@ numpy
 sklearn
 pandas
 tqdm==4.50.2
-pickle
 spacy==3.0.5
-torchtext
+torchtext==0.8
 torch==1.7.1
 datasets==1.6.2
 transformers==4.5.1
+
