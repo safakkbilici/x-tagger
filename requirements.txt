@@ -6,4 +6,5 @@ pickle
 spacy==3.0.5
 torchtext
 torch==1.7.1
-
+datasets==1.6.2
+transformers==4.5.1
