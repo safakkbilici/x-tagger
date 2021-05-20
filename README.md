@@ -5,7 +5,7 @@ x-tagger allows you to play with all kind of data: pandas dataframe, nltk tagged
 
 x-tagger supports only Hidden Markov Model with its extensions (viterbi decoding, bigram, trigram, delete interpolation), Long Short-Term Memory with its extensions (unidirectional, bidirectional), BERT; for now.
 
-Upcoming features: Bidirectional HMMs, morphological way to dealing with unkown words in HMMs, Maximum Entropy Markov Models (MEMM).
+Upcoming features: Bidirectional HMMs, morphological way to dealing with unkown words in HMMs, Maximum Entropy Markov Models (MEMM), prior regex tagger.
 
 ## Examples
 
