@@ -10,6 +10,7 @@ setup(
     author = "Şafak Bilici",
     author_email = "safakk.bilici.2112@gmail.com",
     url = "https://github.com/safakkbilici/x-tagger",
+    download_url = "https://github.com/safakkbilici/x-tagger/archive/refs/tags/0.1.0.tar.gz",
     keywords = [
         "Hidden Markov Models",
         "Token Classification",
