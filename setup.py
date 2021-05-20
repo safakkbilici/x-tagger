@@ -3,8 +3,8 @@ from setuptools import setup, find_packages
 
 setup(
     name = "x-tagger",
-    packages = ["xtagger"],
-    version = "0.1.0",
+    packages=find_packages(),
+    version = "0.1.2",
     license = "MIT",
     description = "A Natural Language Processing toolkit for token classification in its simplest form.",
     author = "Şafak Bilici",
