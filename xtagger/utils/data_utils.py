@@ -3,8 +3,13 @@ import datasets as hfd
 import pickle
 import pandas as pd
 import torch
-from torchtext.legacy import data
-from torchtext.legacy import datasets
+
+try:
+    from torchtext.legacy import data
+    from torchtext.legacy import datasets
+except ImportError:
+    from torchtext import data
+    from torchtext import datasets
 
 
 def df_to_xtagger_dataset(df):
