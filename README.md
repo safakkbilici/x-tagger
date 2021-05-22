@@ -19,7 +19,7 @@ Library is still-in-developement. So building from source is not recommended. Us
 pip install x-tagger
 ```
 
-if you are not using ```torchtext```'s legacy versioning use:
+if you are not using ```torchtext```'s legacy versioning, use:
 
 ```bash
 pip install x-tagger==0.1.0
