@@ -1,4 +1,7 @@
 # x-tagger
+
+<div style="text-align:center"><img src="/assets/logo.png" /></div>
+
 x-tagger is a Natural Language Processing toolkit for token classification in its simplest form.
 
 x-tagger allows you to play with all kind of data: pandas dataframe, nltk tagged corpus, .txt, torchtext iterator and 🤗 datasets.
