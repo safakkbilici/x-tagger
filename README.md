@@ -1,7 +1,7 @@
 # x-tagger
 x-tagger is a Natural Language Processing toolkit for token classification in its simplest form.
 
-x-tagger allows you to play with all kind of data: pandas dataframe, nltk tagged corpus, text, torchtext iterator.
+x-tagger allows you to play with all kind of data: pandas dataframe, nltk tagged corpus, .txt, torchtext iterator.
 
 x-tagger supports only Hidden Markov Model with its extensions (viterbi decoding, bigram, trigram, delete interpolation), Long Short-Term Memory with its extensions (unidirectional, bidirectional), BERT; for now.
 
