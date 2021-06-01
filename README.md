@@ -1,6 +1,8 @@
 # x-tagger
 
-<div style="text-align:center"><img src="/assets/logo.png" /></div>
+<p align="center">
+  <img src="assets/logo.png" />
+</p>
 
 x-tagger is a Natural Language Processing toolkit for token classification in its simplest form.
 
