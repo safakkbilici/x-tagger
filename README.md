@@ -12,6 +12,8 @@ x-tagger is a Natural Language Processing toolkit for token classification in it
 
 Upcoming features: Bidirectional HMMs, morphological way to dealing with unkown words in HMMs, Maximum Entropy Markov Models (MEMM), prior regex tagger.
 
+Remainder: x-tagger is still in beta version and one-person project.
+
 ## Examples
 
 For detailed examples, please see [docs](https://github.com/safakkbilici/x-tagger/blob/main/docs/README.md).
