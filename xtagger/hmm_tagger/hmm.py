@@ -105,7 +105,7 @@ class HiddenMarkovModel():
 
         # Evaluation on full test set is takes soooooo long
         # because it calls viterbi decoder with O(n^2) with bigram extension
-        # O(n^3) with threegram extension
+        # O(n^3) with trigram extension
 
         # take uniformly distributed 30 test sample with random_size or wait
 
