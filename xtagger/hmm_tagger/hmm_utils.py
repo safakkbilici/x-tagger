@@ -60,7 +60,7 @@ def deleted_interpolation(tags, train_tagged_words):
                     if count_t1t2t3 > 0:
                         lmax = max(max_list)
                         lmax_idx = max_list.index(lmax)
-                        lambdas[lmax_idx] += 1
+                        lambdas[lmax_idx] += count_t1t2t3
                 except:
                     pass
 
