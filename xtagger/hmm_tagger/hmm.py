@@ -55,20 +55,20 @@ class HiddenMarkovModel():
         # trigram and deleted_interpolation takes much more time than bigram extension
         
         if self._extend_to == "bigram":
-            self.tag2tag_matrix = np.zeros((len(self._tags),len(self._tags)), dtype='float32')
+            self._tag2tag_matrix = np.zeros((len(self._tags),len(self._tags)), dtype='float32')
             for i, tag1 in enumerate(tqdm(list(self._tags))):
                 for j, tag2 in enumerate(list(self._tags)):
                     p_t1t2, pt1 = get_transition(tag1, tag2, self._train_tagged_words) #tag2 tag1
-                    self.tag2tag_matrix[i, j] = p_t1t2/pt1
+                    self._tag2tag_matrix[i, j] = p_t1t2/pt1
 
         elif self._extend_to == "trigram":
-            self.tag2tag_matrix = np.zeros((len(self._tags),len(self._tags), len(self._tags)), dtype='float32')
+            self._tag2tag_matrix = np.zeros((len(self._tags),len(self._tags), len(self._tags)), dtype='float32')
 
             for i, tag1 in enumerate(tqdm(list(self._tags))):
                 for j, tag2 in enumerate(list(self._tags)):
                     for k, tag3 in enumerate(list(self._tags)):
                         p_t1t2t3, p_t1t2 = get_transition_2(tag1, tag2, tag3, self._train_tagged_words)
-                        self.tag2tag_matrix[i, j, k] = p_t1t2t3/p_t1t2
+                        self._tag2tag_matrix[i, j, k] = p_t1t2t3/p_t1t2
 
         elif self._extend_to == "deleted_interpolation":
             # deleted interpolation is proposed in Jelinek and Mercer, 1980. defined as:
@@ -84,7 +84,7 @@ class HiddenMarkovModel():
             
             lambdas = deleted_interpolation(self._tags, self._train_tagged_words)
             print(lambdas)
-            self.tag2tag_matrix = np.zeros((len(self._tags),len(self._tags), len(self._tags)), dtype='float32')
+            self._tag2tag_matrix = np.zeros((len(self._tags),len(self._tags), len(self._tags)), dtype='float32')
             for i, tag1 in enumerate(tqdm(list(self._tags))):
                 for j, tag2 in enumerate(list(self._tags)):
                     for k, tag3 in enumerate(list(self._tags)):
@@ -98,7 +98,7 @@ class HiddenMarkovModel():
                         p_t1t2t3, p_t1t2 = get_transition_2(tag1, tag2, tag3, self._train_tagged_words)
                         trigram = p_t1t2t3/p_t1t2
 
-                        self.tag2tag_matrix[i, j, k] = lambdas[0] * unigram + lambdas[1] * bigram + lambdas[2] * trigram
+                        self._tag2tag_matrix[i, j, k] = lambdas[0] * unigram + lambdas[1] * bigram + lambdas[2] * trigram
 
 
     def evaluate(self, random_size = 30, all_test_set = False, seed = None, return_all=False):
@@ -121,7 +121,7 @@ class HiddenMarkovModel():
         test_tagged_words = [tup[0] for sent in test_run for tup in sent]
 
 
-        viterbi_object = Viterbi(test_tagged_words, self.tag2tag_matrix, self._train_tagged_words,
+        viterbi_object = Viterbi(test_tagged_words, self._tag2tag_matrix, self._train_tagged_words,
                                self._extend_to, self._start_token, self._indexing)
 
 
@@ -147,7 +147,7 @@ class HiddenMarkovModel():
             return "Done."
 
     def predict(self, words):
-        viterbi_object = Viterbi(words, self.tag2tag_matrix, self._train_tagged_words,
+        viterbi_object = Viterbi(words, self._tag2tag_matrix, self._train_tagged_words,
                                  self._extend_to, self._start_token, self._indexing)
 
         if self._extend_to == "bigram":
@@ -179,3 +179,6 @@ class HiddenMarkovModel():
 
     def get_extension(self):
         return self._extend_to
+
+    def get_transition_matrix(self):
+        return self._tag2tag_matrix
