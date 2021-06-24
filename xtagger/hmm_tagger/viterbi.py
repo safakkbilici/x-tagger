@@ -6,35 +6,43 @@ from xtagger.hmm_tagger.hmm_utils import get_emission, \
 class Viterbi(object):
     def __init__(self, words, tag2tag_matrix, train_set, extend_to = "bigram", start = ".",
                  indexing = ["NUM","CONJ","X","ADJ","DET","VERB","NOUN","PRT","ADV",".","ADP","PRON"]):
-        self.words = words
-        self.tag2tag_matrix = tag2tag_matrix
-        self.indexing = indexing
-        self.extend_to = extend_to
-        self.train_set = train_set
-        self.extended = ["bigram", "trigram","deleted_interpolation"]
-        self.start = start
-        
-        if self.extend_to not in self.extended:
+        self._words = words
+        self._tag2tag_matrix = tag2tag_matrix
+        self._indexing = indexing
+        self._extend_to = extend_to
+        self._train_set = train_set
+        self._extended = ["bigram", "trigram","deleted_interpolation"]
+        self._start = start
+
+        # not neccesary
+        if self._extend_to not in self._extended:
             raise ValueError("Higher than trigrams are not currently supported. Would you want to contribute?")
 
+    # bigram HMM and trigram HMM is currently implemented extensions
+    # normally, it is easy to extend it to n-gram
+    # but in practice we try not to use n-grams higher than fourgram
+    # the asymptotic computational of >4 is high
     def fit_bigram(self):
         state = []
-        T = list(set([pair[1] for pair in self.train_set]))
-        for key, word in enumerate(tqdm(self.words)):
+        T = list(set([pair[1] for pair in self._train_set]))
+        for key, word in enumerate(tqdm(self._words)):
             p = []
             for tag in T:
                 if key == 0:
-                    start_idx = self.indexing.index(self.start)
-                    tag_idx = self.indexing.index(tag)
-                    transition_p = self.tag2tag_matrix[start_idx,tag_idx]
+                    # previous word for first word is actually padding
+                    # so we can set the tag as start tag
+                    start_idx = self._indexing.index(self._start)
+                    tag_idx = self._indexing.index(tag)
+                    transition_p = self._tag2tag_matrix[start_idx,tag_idx]
 
                 else:
-                    pre_state_idx = self.indexing.index(state[-1])
-                    tag_idx = self.indexing.index(tag)
-                    transition_p = self.tag2tag_matrix[pre_state_idx,tag_idx]
+                    #start with previous predicted tag
+                    pre_state_idx = self._indexing.index(state[-1])
+                    tag_idx = self._indexing.index(tag)
+                    transition_p = self._tag2tag_matrix[pre_state_idx,tag_idx]
 
-
-                p_tiwi, pti = get_emission(self.words[key], tag, self.train_set)
+                # emission probabilities
+                p_tiwi, pti = get_emission(self._words[key], tag, self._train_set)
                 emission_p = p_tiwi/pti
                 state_probability = emission_p * transition_p
                 p.append(state_probability)
@@ -43,36 +51,41 @@ class Viterbi(object):
             state_max = T[p.index(pmax)]
             state.append(state_max)
 
-        return list(zip(self.words, state))
+        return list(zip(self._words, state))
 
 
     def fit_trigram(self):
         state = []
-        T = list(set([pair[1] for pair in self.train_set]))
-        for key, word in enumerate(tqdm(self.words)):
+        T = list(set([pair[1] for pair in self._train_set]))
+        for key, word in enumerate(tqdm(self._words)):
             p1 = []
             p2 = []
             for tag2 in T:
                 for tag1 in T:
                     if key==0:
-                        start_idx = self.indexing.index(self.start)
-                        start2_idx = self.indexing.index(self.start)
-                        tag2_idx = self.indexing.index(tag2)
-                        transition_p = self.tag2tag_matrix[start_idx, start2_idx, tag2_idx]
+                        # first two previous word for first word are actually padding
+                        # so we can set the tag as start tags
+                        start_idx = self._indexing.index(self._start)
+                        start2_idx = self._indexing.index(self._start)
+                        tag2_idx = self._indexing.index(tag2)
+                        transition_p = self._tag2tag_matrix[start_idx, start2_idx, tag2_idx]
 
                     elif key==1:
-                        start_idx = self.indexing.index(self.start)
-                        tag1_idx = self.indexing.index(tag1)
-                        tag2_idx = self.indexing.index(tag2)
-                        transition_p = self.tag2tag_matrix[start_idx, tag1_idx, tag2_idx]
+                        # previous word for first word is actually padding
+                        # so we can set the tag as start tag
+                        start_idx = self._indexing.index(self._start)
+                        tag1_idx = self._indexing.index(tag1)
+                        tag2_idx = self._indexing.index(tag2)
+                        transition_p = self._tag2tag_matrix[start_idx, tag1_idx, tag2_idx]
 
                     else:
-                        pre_state_idx = self.indexing.index(state[-1])
-                        tag1_idx = self.indexing.index(tag1)
-                        tag2_idx = self.indexing.index(tag2)
-                        transition_p = self.tag2tag_matrix[pre_state_idx, tag1_idx, tag2_idx]
+                        pre_state_idx = self._indexing.index(state[-1])
+                        tag1_idx = self._indexing.index(tag1)
+                        tag2_idx = self._indexing.index(tag2)
+                        transition_p = self._tag2tag_matrix[pre_state_idx, tag1_idx, tag2_idx]
 
-                    p_tiwi, pti = get_emission(self.words[key], tag2, self.train_set)
+                    # emission probabilities
+                    p_tiwi, pti = get_emission(self._words[key], tag2, self._train_set)
                     emission_p = p_tiwi/pti
                     state_probability = emission_p * transition_p
                     p1.append(state_probability)
@@ -84,11 +97,14 @@ class Viterbi(object):
             state_max = T[p2.index(pmax)]
             state.append(state_max)
 
-        return list(zip(self.words, state))
+        return list(zip(self._words, state))
 
 
     def get_indexing(self):
-        return self.indexing
+        return self._indexing
 
     def get_type(self):
-        return self.extend_to
+        return self._extend_to
+
+    def get_transition_matrix(self):
+        return self._tag2tag_matrix
