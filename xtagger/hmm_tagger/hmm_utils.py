@@ -36,9 +36,9 @@ def get_transition_2(tag1, tag2, tag3, train_bag):
     return count_tag1_tag2_tag3, count_tag1_tag2
 
 
-def deleted_interpolation(tags, train_tagged_words):
+def deleted_interpolation(tags, train_tagged_words, t):
     lambdas = [0] * 3
-    for i, tag1 in enumerate(tqdm(list(tags))):
+    for i, tag1 in enumerate(list(tags)):
         for j, tag2 in enumerate(list(tags)):
             for k, tag3 in enumerate(list(tags)):
                 max_list = []
@@ -63,6 +63,7 @@ def deleted_interpolation(tags, train_tagged_words):
                         lambdas[lmax_idx] += count_t1t2t3
                 except:
                     pass
+                t.update()
 
     total_sum = np.sum(lambdas)
     lambdas[0] /= total_sum

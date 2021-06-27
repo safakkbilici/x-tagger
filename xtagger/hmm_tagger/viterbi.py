@@ -57,45 +57,47 @@ class Viterbi(object):
     def fit_trigram(self):
         state = []
         T = list(set([pair[1] for pair in self._train_set]))
-        for key, word in enumerate(tqdm(self._words)):
-            p1 = []
-            p2 = []
-            for tag2 in T:
-                for tag1 in T:
-                    if key==0:
-                        # first two previous word for first word are actually padding
-                        # so we can set the tag as start tags
-                        start_idx = self._indexing.index(self._start)
-                        start2_idx = self._indexing.index(self._start)
-                        tag2_idx = self._indexing.index(tag2)
-                        transition_p = self._tag2tag_matrix[start_idx, start2_idx, tag2_idx]
+        with tqdm(total = len(self._words) * len(T) * len(T)) as t:
+            for key, word in enumerate(self._words):
+                p1 = []
+                p2 = []
+                for tag2 in T:
+                    for tag1 in T:
+                        if key==0:
+                            # first two previous word for first word are actually padding
+                            # so we can set the tag as start tags
+                            start_idx = self._indexing.index(self._start)
+                            start2_idx = self._indexing.index(self._start)
+                            tag2_idx = self._indexing.index(tag2)
+                            transition_p = self._tag2tag_matrix[start_idx, start2_idx, tag2_idx]
 
-                    elif key==1:
-                        # previous word for first word is actually padding
-                        # so we can set the tag as start tag
-                        start_idx = self._indexing.index(self._start)
-                        tag1_idx = self._indexing.index(tag1)
-                        tag2_idx = self._indexing.index(tag2)
-                        transition_p = self._tag2tag_matrix[start_idx, tag1_idx, tag2_idx]
+                        elif key==1:
+                            # previous word for first word is actually padding
+                            # so we can set the tag as start tag
+                            start_idx = self._indexing.index(self._start)
+                            tag1_idx = self._indexing.index(tag1)
+                            tag2_idx = self._indexing.index(tag2)
+                            transition_p = self._tag2tag_matrix[start_idx, tag1_idx, tag2_idx]
+                            
+                        else:
+                            pre_state_idx = self._indexing.index(state[-1])
+                            tag1_idx = self._indexing.index(tag1)
+                            tag2_idx = self._indexing.index(tag2)
+                            transition_p = self._tag2tag_matrix[pre_state_idx, tag1_idx, tag2_idx]
+                        t.update()
 
-                    else:
-                        pre_state_idx = self._indexing.index(state[-1])
-                        tag1_idx = self._indexing.index(tag1)
-                        tag2_idx = self._indexing.index(tag2)
-                        transition_p = self._tag2tag_matrix[pre_state_idx, tag1_idx, tag2_idx]
+                            # emission probabilities
+                        p_tiwi, pti = get_emission(self._words[key], tag2, self._train_set)
+                        emission_p = p_tiwi/pti
+                        state_probability = emission_p * transition_p
+                        p1.append(state_probability)
 
-                    # emission probabilities
-                    p_tiwi, pti = get_emission(self._words[key], tag2, self._train_set)
-                    emission_p = p_tiwi/pti
-                    state_probability = emission_p * transition_p
-                    p1.append(state_probability)
+                    pmax_inner = max(p1) #max for tag2_i
+                    p2.append(pmax_inner)
 
-                pmax_inner = max(p1) #max for tag2_i
-                p2.append(pmax_inner)
-
-            pmax = max(p2)
-            state_max = T[p2.index(pmax)]
-            state.append(state_max)
+                pmax = max(p2)
+                state_max = T[p2.index(pmax)]
+                state.append(state_max)
 
         return list(zip(self._words, state))
 

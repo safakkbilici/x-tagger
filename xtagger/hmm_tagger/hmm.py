@@ -41,11 +41,13 @@ class HiddenMarkovModel():
         elif self._extend_to == "trigram":
             self._tag2tag_matrix = np.zeros((len(self._tags),len(self._tags), len(self._tags)), dtype='float32')
 
-            for i, tag1 in enumerate(tqdm(list(self._tags))):
-                for j, tag2 in enumerate(list(self._tags)):
-                    for k, tag3 in enumerate(list(self._tags)):
-                        p_t1t2t3, p_t1t2 = get_transition_2(tag1, tag2, tag3, self._train_tagged_words)
-                        self._tag2tag_matrix[i, j, k] = p_t1t2t3/p_t1t2
+            with tqdm(total =len(self._tags)**3) as t:
+                for i, tag1 in enumerate(list(self._tags)):
+                    for j, tag2 in enumerate(list(self._tags)):
+                        for k, tag3 in enumerate(list(self._tags)):
+                            p_t1t2t3, p_t1t2 = get_transition_2(tag1, tag2, tag3, self._train_tagged_words)
+                            self._tag2tag_matrix[i, j, k] = p_t1t2t3/p_t1t2
+                            t.update()
 
         elif self._extend_to == "deleted_interpolation":
             # deleted interpolation is proposed in Jelinek and Mercer, 1980. defined as:
@@ -58,24 +60,27 @@ class HiddenMarkovModel():
             #   i = argmax([(C(t1, t2, t3)-1)/(C(t1, t2)-1)], [(C(t2, t3)-1)/(C(t2)-1)], [(C(t3)-1)/(N-1)])
             #   λ_i += C(t1, t2, t3)
             # end for
-            
-            lambdas = deleted_interpolation(self._tags, self._train_tagged_words)
-            print(lambdas)
-            self._tag2tag_matrix = np.zeros((len(self._tags),len(self._tags), len(self._tags)), dtype='float32')
-            for i, tag1 in enumerate(tqdm(list(self._tags))):
-                for j, tag2 in enumerate(list(self._tags)):
-                    for k, tag3 in enumerate(list(self._tags)):
-                        N = len(self._train_tagged_words)
-                        unigram = len([tup[1] for tup in self._train_tagged_words if tup[1] == tag3]) / N
-
-                        p_t2t3, p_t2 = get_transition(tag2, tag3, self._train_tagged_words)
-                        bigram = p_t2t3 / p_t2
 
 
-                        p_t1t2t3, p_t1t2 = get_transition_2(tag1, tag2, tag3, self._train_tagged_words)
-                        trigram = p_t1t2t3/p_t1t2
+            with tqdm(total =2*len(self._tags)**3 ) as t:
+                lambdas = deleted_interpolation(self._tags, self._train_tagged_words, t)
+                self._tag2tag_matrix = np.zeros((len(self._tags),len(self._tags), len(self._tags)), dtype='float32')
 
-                        self._tag2tag_matrix[i, j, k] = lambdas[0] * unigram + lambdas[1] * bigram + lambdas[2] * trigram
+                for i, tag1 in enumerate(list(self._tags)):
+                    for j, tag2 in enumerate(list(self._tags)):
+                        for k, tag3 in enumerate(list(self._tags)):
+                            N = len(self._train_tagged_words)
+                            unigram = len([tup[1] for tup in self._train_tagged_words if tup[1] == tag3]) / N
+
+                            p_t2t3, p_t2 = get_transition(tag2, tag3, self._train_tagged_words)
+                            bigram = p_t2t3 / p_t2
+
+                            p_t1t2t3, p_t1t2 = get_transition_2(tag1, tag2, tag3, self._train_tagged_words)
+                            trigram = p_t1t2t3/p_t1t2
+
+                            self._tag2tag_matrix[i, j, k] = lambdas[0] * unigram + lambdas[1] * bigram + lambdas[2] * trigram
+                            t.update()
+            print(f"λ1: {lambdas[0]}, λ2: {lambdas[1]}, λ3: {lambdas[2]}")
 
 
     def evaluate(self, test_set, random_size = 30, seed = None, return_all=False):
