@@ -6,12 +6,17 @@ from transformers import DataCollatorForTokenClassification
 import torch
 import numpy as np
 
+from xtagger.utils.data_utils import xtagger_dataset_to_df, df_to_hf_dataset
+
+import warnings
+warnings.filterwarnings("ignore")
+
 class BERTForTagging():
-    def __init__(self, train, test, bert_config_path, device, tags, tokenizer, cuda=True,
-                 learning_rate = 2e-5, train_batch_size=4, eval_batch_size=4, epochs=3, weight_decay=0.1):
+    def __init__(self, bert_config_path, device, tags, tokenizer, cuda=True, learning_rate = 2e-5,
+                 train_batch_size=4, eval_batch_size=4, epochs=3, weight_decay=0.1, log_step = 10_000):
         self.device = device
         if self.device.type == "cpu" and cuda:
-            printf("Can't see cuda. Switching to cpu automatically.")
+            print("Can't see cuda. Switching to cpu automatically.")
 
         self.config = bert_config_path
         self.tags = tags
@@ -21,9 +26,7 @@ class BERTForTagging():
         self.epochs = epochs
         self.weight_decay = weight_decay
         self.tokenizer = tokenizer
-
-        self.train = train
-        self.test = test
+        self.log_step = log_step
 
         self.build_model()
 
@@ -53,7 +56,10 @@ class BERTForTagging():
             "accuracy": results["overall_accuracy"],
         }
 
-    def fit(self):
+    def fit(self, train, test):
+        self.train = train
+        self.test = test
+        
         args = TrainingArguments(
             "tagging",
             evaluation_strategy = "epoch",
@@ -62,6 +68,8 @@ class BERTForTagging():
             per_device_eval_batch_size=self.eval_batch_size,
             num_train_epochs=self.epochs,
             weight_decay=self.weight_decay,
+            save_steps = self.log_step,
+            logging_steps = self.log_step
         )
 
         data_collator = DataCollatorForTokenClassification(self.tokenizer)
@@ -81,14 +89,27 @@ class BERTForTagging():
 
 
     def evaluate(self):
-        self.trainer.evaluate()
+        return self.trainer.evaluate()
 
 
-    #def predict(self,sentence):
-    #    tokenized = self.tokenizer.encode(sentence)
-    #    predictions, labels, _ = self.trainer.predict(tokenized)
-    #    predictions = np.argmax(predictions, axis=2)
-    #    return predictions
-
+    def predict(self,sentence):
+        d = []
+        for word in sentence.split():
+            d.append((word,self.tags[0]))
+        sample = xtagger_dataset_to_df([d], row_as_list=True)
+        dataset_sample = df_to_hf_dataset(sample, self.tags, self.tokenizer, self.device)
+        raw, _, _ = self.trainer.predict(dataset_sample)
+        sentence_tags = []
+        for sent in raw:
+            words = []
+            for word in sent:
+                words.append(np.argmax(word))
+            sentence_tags.append(words)
+        predicted_tags = []
+        for i in sentence_tags[0]:
+            print(self.tags[i])
+        return predicted_tags
+        
+    
     def load_model(self, save_name):
         self.model.load_state_dict(torch.load(save_name))
