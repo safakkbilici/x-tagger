@@ -10,11 +10,8 @@ from xtagger.utils.time_utils import epoch_time
 from xtagger.lstm_tagger.lstm import LSTM
 
 class LSTMForTagging(object):
-    def __init__(self, train_set, test_set, TEXT, TAGS, embedding_dim=100, hidden_dim=128, n_layers = 2,
-                 bidirectional=True, dropout=0.25, cuda=True):
-
-        self.train_set = train_set
-        self.test_set = test_set
+    def __init__(self, TEXT, TAGS, embedding_dim=100, hidden_dim=128,
+                 n_layers = 2, bidirectional=True, dropout=0.25, cuda=True):
 
         self.TEXT = TEXT
         self.TAGS = TAGS
@@ -118,9 +115,11 @@ class LSTMForTagging(object):
 
         return epoch_loss / len(self.test_set), epoch_acc / len(self.test_set)
 
-    def fit(self, epochs=10, save_name = "lstm_model.pt"):
+    def fit(self, train_set, test_set, epochs=10, save_name = "lstm_model.pt"):
+        self.train_set = train_set
+        self.test_set = test_set
+        
         best_valid_loss = float('inf')
-
         for epoch in range(epochs):
             start_time = time.time()
 
