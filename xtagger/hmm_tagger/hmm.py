@@ -46,7 +46,10 @@ class HiddenMarkovModel():
                     for j, tag2 in enumerate(list(self._tags)):
                         for k, tag3 in enumerate(list(self._tags)):
                             p_t1t2t3, p_t1t2 = get_transition_2(tag1, tag2, tag3, self._train_tagged_words)
-                            self._tag2tag_matrix[i, j, k] = p_t1t2t3/p_t1t2
+                            try:
+                                self._tag2tag_matrix[i, j, k] = p_t1t2t3/p_t1t2
+                            except:
+                                self._tag2tag_matrix[i, j, k] = 0
                             t.update()
 
         elif self._extend_to == "deleted_interpolation":
@@ -130,17 +133,10 @@ class HiddenMarkovModel():
                                  self._extend_to, self._start_token, self._indexing)
 
         if self._extend_to == "bigram":
-            start = time.time()
             tagged_seq = viterbi_object.fit_bigram()
-            end = time.time()
 
         else:
-            start = time.time()
             tagged_seq = viterbi_object.fit_trigram()
-            end = time.time()
-
-        difference = end-start
-        print("Time taken: {}s".format(difference))
         return tagged_seq
 
     def set_test_set(self, test):
