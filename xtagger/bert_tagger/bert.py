@@ -107,9 +107,9 @@ class BERTForTagging():
             sentence_tags.append(words)
         predicted_tags = []
         for i in sentence_tags[0]:
-            print(self.tags[i])
-        return predicted_tags
+            predicted_tags.append(self.tags[i])
+        return_tup = []
+        return predicted_tags, dataset_sample[0]["input_ids"]
         
-    
     def load_model(self, save_name):
         self.model.load_state_dict(torch.load(save_name))
