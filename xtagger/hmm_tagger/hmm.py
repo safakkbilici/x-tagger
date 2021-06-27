@@ -98,13 +98,13 @@ class HiddenMarkovModel():
             random.seed(seed)
 
         if random_size != -1:
-            rndom = [random.randint(1,len(self._test_set)) for x in range(random_size)]
-            test_run = [self._test_set[i] for i in rndom]
+            random_sample_indices = [random.randint(1,len(self._test_set)-1) for x in range(random_size)]
+            test_subsamples = [self._test_set[i] for i in random_sample_indices]
         else:
-            test_run = [self._test_set[i] for i in range(len(self._test_set))]
+            test_subsamples = [self._test_set[i] for i in range(len(self._test_set))]
 
-        test_run_base = [tup for sent in test_run for tup in sent]
-        test_tagged_words = [tup[0] for sent in test_run for tup in sent]
+        test_run_base = [tup for sent in test_subsamples for tup in sent]
+        test_tagged_words = [tup[0] for sent in test_subsamples for tup in sent]
 
 
         viterbi_object = Viterbi(test_tagged_words, self._tag2tag_matrix, self._train_tagged_words,
