@@ -1,6 +1,5 @@
 import numpy as np
 import random
-import time
 from tqdm import tqdm
 from xtagger.hmm_tagger.viterbi import Viterbi
 from xtagger.hmm_tagger.hmm_utils import get_emission, \
@@ -15,7 +14,7 @@ class HiddenMarkovModel():
         if self._extend_to not in self._extended:
             raise ValueError("Higher than trigrams are not currently supported. Would you want to contribute?")
 
-    def fit(self, train_set, test_set, start_token = ".", language="en"):
+    def fit(self, train_set, start_token = ".", language="en"):
         # multilinguality is not supported yet, but it is best practice to pass language.
         # start_token is neccesary for calculating probabilities on padded tokens
         self._train_set = train_set
@@ -107,17 +106,11 @@ class HiddenMarkovModel():
                                self._extend_to, self._start_token, self._indexing)
 
         if self._extend_to == "bigram":
-            start = time.time()
             tagged_seq = viterbi_object.fit_bigram()
-            end = time.time()
 
         else:
-            start = time.time()
             tagged_seq = viterbi_object.fit_trigram()
-            end = time.time()
 
-        difference = end-start
-        print("Time taken: {}s".format(difference))
         check = [i for i, j in zip(tagged_seq, test_run_base) if i == j] 
         accuracy = len(check)/len(tagged_seq)
         print('Accuracy: {}%'.format(accuracy*100))
