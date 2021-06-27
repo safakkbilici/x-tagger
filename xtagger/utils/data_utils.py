@@ -15,12 +15,24 @@ except ImportError:
 def df_to_xtagger_dataset(df):
     data2list = []
     for index, row in tqdm(df.iterrows(), total = df.shape[0]):
-        ner_tags = row["ner_tags"]
-        tokens = row["tokens"]
+        ner_tags = row["tags"]
+        tokens = row["sentence"]
         mapped = list(map(lambda x, y: (x,y), tokens, ner_tags))
         data2list.append(mapped)
     return data2list
 
+def text_to_xtagger_dataset(filename, word_tag_split = " ", word_split = "\n", sent_split="\n\n"):
+    with open(filename,"r") as f:
+        data = f.read()
+    sentences = data.split(sent_split)
+    data2list = []
+    for sentence in sentences:
+        word_tag_list = []
+        for pair in sentence.split(word_split):
+            word_tag_list.append(tuple(pair.split(word_tag_split)))
+        data2list.append(word_tag_list)
+    return data2list
+    
 def save_as_pickle(hmm_dataset, name):
     with open(f"{name}.pkl", wb) as handle:
         pickle.dump(train_data2list, handle, protocol=pickle.HIGHEST_PROTOCOL)
