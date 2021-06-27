@@ -7,49 +7,27 @@ from xtagger.hmm_tagger.hmm_utils import get_emission, \
     get_transition, get_transition_2, deleted_interpolation
 
 class HiddenMarkovModel():
-    def __init__(self, train_set, test_set, extend_to = "bigram", start_token = ".", language="en",
-                 tags= ["NUM","CONJ","X","ADJ","DET","VERB","NOUN","PRT","ADV",".","ADP","PRON"]):
-
-        if start_token not in tags:
-            raise ValueError(f"Unknown start token: {start_token}")
-
-        if len(set(tags)) != len(tags):
-            raise ValueError("Duplicate tokens.")
-
-        # multilinguality is not supported yet, but it is best practice to pass language.
-        # extend_to is derivation of HMM model
-        # we take train and test sets while initializing model but this can be changed by set_test_set()
-        # start_token is neccesary for calculating probabilities on padded tokens
-
-        # normally, tags in training set is automatically detected
-        # the tags parameter at initialization will be removed, until removal, pass it
-
+    def __init__(self, extend_to = "bigram"):
         
-        self._language = language
         self._extend_to = extend_to
-        self._train_set = train_set
-        self._test_set = test_set
-        self._start_token = start_token
+        
         self._extended = ["bigram", "trigram","deleted_interpolation"]
         if self._extend_to not in self._extended:
             raise ValueError("Higher than trigrams are not currently supported. Would you want to contribute?")
 
+    def fit(self, train_set, test_set, start_token = ".", language="en"):
+        # multilinguality is not supported yet, but it is best practice to pass language.
+        # start_token is neccesary for calculating probabilities on padded tokens
+        self._train_set = train_set
         self._train_tagged_words = [tup for sent in self._train_set for tup in sent]
-        self._test_tagged_words = [tup for sent in self._test_set for tup in sent]
-
         self._tags = {tag for word,tag in self._train_tagged_words}
         self._vocab = {word for word,tag in self._train_tagged_words}
-
         self._indexing = list(self._tags)
+        self._start_token = start_token
 
-        if set(self._tags) != set(tags):
-            raise ValueError("Tokens does not matching with training data.")
-
-        if start_token not in self._tags: #not necessary but ok.
+        if start_token not in self._tags:
             raise ValueError(f"Unknown start token: {start_token}")
-
-
-    def fit(self):
+        
         # fit method actually calculates transition probabilities
         # so it is normal to take shorter computational time
         # trigram and deleted_interpolation takes much more time than bigram extension
@@ -101,7 +79,7 @@ class HiddenMarkovModel():
                         self._tag2tag_matrix[i, j, k] = lambdas[0] * unigram + lambdas[1] * bigram + lambdas[2] * trigram
 
 
-    def evaluate(self, random_size = 30, all_test_set = False, seed = None, return_all=False):
+    def evaluate(self, test_set, random_size = 30, seed = None, return_all=False):
 
         # Evaluation on full test set takes soooooo long
         # because it calls viterbi decoder with O(n^2) with bigram extension
@@ -109,21 +87,24 @@ class HiddenMarkovModel():
 
         # take uniformly distributed 30 test sample with random_size or wait
 
+        self._test_set = test_set
+        self._test_tagged_words = [tup for sent in self._test_set for tup in sent]
+
         if seed != None:
             random.seed(seed)
 
-        if all_test_set == False:
+        if random_size != -1:
             rndom = [random.randint(1,len(self._test_set)) for x in range(random_size)]
             test_run = [self._test_set[i] for i in rndom]
         else:
             test_run = [self._test_set[i] for i in range(len(self._test_set))]
+
         test_run_base = [tup for sent in test_run for tup in sent]
         test_tagged_words = [tup[0] for sent in test_run for tup in sent]
 
 
         viterbi_object = Viterbi(test_tagged_words, self._tag2tag_matrix, self._train_tagged_words,
                                self._extend_to, self._start_token, self._indexing)
-
 
         if self._extend_to == "bigram":
             start = time.time()
