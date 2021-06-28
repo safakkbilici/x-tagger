@@ -10,7 +10,12 @@ x-tagger is a Natural Language Processing toolkit for token classification in it
 
 * Supports only Hidden Markov Model with its extensions (viterbi decoding, bigram, trigram, delete interpolation), Long Short-Term Memory with its extensions (unidirectional, bidirectional), BERT; for now.
 
-Upcoming features: Bidirectional HMMs, morphological way to dealing with unkown words in HMMs, Maximum Entropy Markov Models (MEMM), prior regex tagger.
+* There are upcoming features soon:
+  * Bidirectional Hidden Markov Models.
+  * Morphological way to dealing with unkown words (language dependent).
+  * Maximum Entropy Markov Models (MEMM).
+  * Prior RegEx tagger for computational efficiency in HMMs (language dependent).
+  * Beam search.
 
 Remainder: x-tagger is still in beta version and one-person project.
 
