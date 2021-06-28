@@ -18,16 +18,10 @@ Remainder: x-tagger is still in beta version and one-person project.
 
 For detailed examples, please see [docs](https://github.com/safakkbilici/x-tagger/blob/main/docs/README.md).
 
-## Releases
+## Installing
 
 Library is still-in-developement. So building from source is not recommended. Use ```pip``` for latest stable version
 
 ```bash
 pip install x-tagger
-```
-
-if you are not using ```torchtext```'s legacy versioning, use:
-
-```bash
-pip install x-tagger==0.1.0
 ```
