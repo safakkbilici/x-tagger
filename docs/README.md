@@ -147,31 +147,31 @@ from sklearn.model_selection import train_test_split
 from xtagger import HiddenMarkovModel
 
 nltk_data = list(nltk.corpus.treebank.tagged_sents(tagset='universal'))
-train_set,test_set =train_test_split(nltk_data,train_size=0.8,test_size=0.2,random_state = 2112)
+train_set,test_set =train_test_split(nltk_data,train_size=0.8,test_size=0.2)
 
-hmm = HiddenMarkovModel(train_set, test_set, extend_to = "bigram")
-hmm.fit()
-hmm.evaluate()
+hmm = HiddenMarkovModel(extend_to = "bigram", language = "en")
+hmm.fit(train_set)
+hmm.evaluate(test_set)
 ```
 
 ```xtagger.HiddenMarkovModel.evaluate()``` takes more time than ```xtagger.HiddenMarkovModel.fit()``` as expected. ```xtagger.HiddenMarkovModel.evaluate()``` evaluates 10 random datapoint from your test set without fixed seed. You can evaluate with custom n-datapoint, seed, or you can evaluate your entire test set:
 
 ```python
-hmm.evaluate(seed=2112)
-hmm.evaluate(random_size=30, seed=137)
-hmm.evaluate(all_test_set = True)
+hmm.evaluate(test_set, seed=2112)
+hmm.evaluate(test_set, random_size=30, seed=137)
+hmm.evaluate(test_set, random_size=-1) #all test set
 ```
 
 if you want to get tokens from  ```xtagger.HiddenMarkovModel.evaluate()```:
 
 ```python
-hmm.evaluate(random_size=30, return_all=True)
+hmm.evaluate(test_set, random_size=30, return_all=True)
 ```
 After training you can easily get tokens for sentences:
 
 ```
-hmm = HiddenMarkovModel(train_set, test_set, extend_to = "bigram")
-hmm.fit()
+hmm = HiddenMarkovModel(extend_to = "bigram", language="en")
+hmm.fit(train_set)
 
 hmm.predict(["hello","world","i","am","doing","great"])
 ```
@@ -195,11 +195,11 @@ from sklearn.model_selection import train_test_split
 from xtagger import HiddenMarkovModel
 
 nltk_data = list(nltk.corpus.treebank.tagged_sents(tagset='universal'))
-train_set,test_set =train_test_split(nltk_data,train_size=0.8,test_size=0.2,random_state = 2112)
+train_set,test_set =train_test_split(nltk_data,train_size=0.8,test_size=0.2)
 
-hmm = HiddenMarkovModel(train_set, test_set, extend_to = "trigram")
-hmm.fit()
-hmm.evaluate()
+hmm = HiddenMarkovModel(extend_to = "trigram", language="en")
+hmm.fit(train_set)
+hmm.evaluate(test_set)
 ```
 
 Or you can modify trigram Hidden Markov Model with **Deleted Interpolation** as proposed in Jelinek and Mercer 1980.
@@ -211,11 +211,11 @@ from sklearn.model_selection import train_test_split
 from xtagger import HiddenMarkovModel
 
 nltk_data = list(nltk.corpus.treebank.tagged_sents(tagset='universal'))
-train_set,test_set =train_test_split(nltk_data,train_size=0.8,test_size=0.2,random_state = 2112)
+train_set,test_set =train_test_split(nltk_data,train_size=0.8,test_size=0.2)
 
-hmm = HiddenMarkovModel(train_set, test_set, extend_to = "deleted_interpolation")
-hmm.fit()
-hmm.evaluate()
+hmm = HiddenMarkovModel(extend_to = "deleted_interpolation", language="en")
+hmm.fit(train_set)
+hmm.evaluate(test_set, random_size=5)
 ```
 
 ### Long Short-Term Memory (LSTM)
@@ -232,7 +232,7 @@ from xtagger import xtagger_dataset_to_df, df_to_torchtext_data
 
 
 nltk_data = list(nltk.corpus.treebank.tagged_sents(tagset='universal'))
-train_set,test_set =train_test_split(nltk_data,train_size=0.8,test_size=0.2,random_state = 2112)
+train_set,test_set =train_test_split(nltk_data,train_size=0.8,test_size=0.2)
 
 df_train = xtagger_dataset_to_df(train_set)
 df_test = xtagger_dataset_to_df(test_set)
@@ -240,9 +240,9 @@ df_test = xtagger_dataset_to_df(test_set)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 train_iterator, valid_iterator, test_iterator, TEXT, TAGS = df_to_torchtext_data(df_train, df_test, device, batch_size=32)
 
-model = LSTMForTagging(train_iterator, valid_iterator, TEXT, TAGS)
+model = LSTMForTagging(TEXT, TAGS, cuda=True)
 
-model.fit()
+model.fit(train_iterator, test_iterator)
 
 model.predict("hello world i am doing great")
 ```
@@ -250,8 +250,8 @@ model.predict("hello world i am doing great")
 you can easily change your LSTM model's hyperparameters at its constructor and ```.fit()``` method.
 
 ```python
-model = LSTMForTagging(train_iterator, valid_iterator, TEXT, TAGS,
-                       embedding_dim=100, hidden_dim=128, n_layers = 2,
+model = LSTMForTagging(TEXT, TAGS,embedding_dim=100,
+		       hidden_dim=128, n_layers = 2,
                        bidirectional=True, dropout=0.25, cuda=True)
                     
 model.fit(epochs=10, save_name = "lstm_save_best.pt")
@@ -260,7 +260,7 @@ model.load_best_model("lstm_save_best.pt")
 
 ### BERT
                        
-For BERT, we use 🤗 datasets interface. It is still in developement, but you can train your BERT for token classification (using x-tagger dataset, as always):
+For BERT, we use 🤗 transformers interface. You can train your BERT for token classification (using x-tagger dataset, as always):
 
 ```python
 import nltk
@@ -268,39 +268,41 @@ from sklearn.model_selection import train_test_split
 from transformers import AutoTokenizer
 
 import torch
-from xtagger import LSTMForTagging
 from xtagger import xtagger_dataset_to_df, df_to_hf_dataset
 from xtagger import BERTForTagging
 
 nltk_data = list(nltk.corpus.treebank.tagged_sents(tagset='universal'))
-train_set,test_set =train_test_split(nltk_data,train_size=0.8,test_size=0.2,random_state = 2112)
+train_set,test_set =train_test_split(nltk_data,train_size=0.8,test_size=0.2)
 
-df_train = xtagger_dataset_to_df(train_set)
-df_test = xtagger_dataset_to_df(test_set)
+df_train = xtagger_dataset_to_df(train_set, row_as_list=True)
+df_test = xtagger_dataset_to_df(test_set, row_as_list=True)
 
 train_tagged_words = [tup for sent in train_set for tup in sent]
 tags = {tag for word,tag in train_tagged_words}
 tags = list(tags)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-tokenizer = AutoTokenizer.from_pretrained("./path_to_tokenizer")
+tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
 
 dataset_train = df_to_hf_dataset(df_train, tags, tokenizer, device)
 dataset_test = df_to_hf_dataset(df_test, tags, tokenizer, device)
 
 from xtagger import BERTForTagging
-model = BERTForTagging(dataset_train, dataset_test,  "./path/to/bert", device, tags, tokenizer)
+model = BERTForTagging("bert-base-uncased", device, tags, tokenizer)
 
-model.fit()
+model.fit(dataset_train, dataset_test)
 model.evaluate()
+
+preds, ids = model.predict('the next Charlie Parker would never be discouraged.')
+print(preds)
 ````
 
 you can easily change your BERT model's hyperparameters at its constructor and ```.fit()``` method.
 
 ```python
-model = BERTForTagging(dataset_train, dataset_test, "./path/to/bert", device, 
-                       tags, tokenizer, cuda=True, learning_rate = 2e-5, 
-                       train_batch_size=4, eval_batch_size=4, epochs=3, weight_decay=0.1)
+model = BERTForTagging("bert-base-uncased", device, tags, tokenizer,
+      		       cuda=True, learning_rate = 2e-5, train_batch_size=4,
+		       eval_batch_size=4, epochs=3, weight_decay=0.1)
 ```
 
 
