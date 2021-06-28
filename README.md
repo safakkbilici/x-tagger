@@ -17,7 +17,7 @@ x-tagger is a Natural Language Processing toolkit for token classification in it
   * Prior RegEx tagger for computational efficiency in HMMs (language dependent).
   * Beam search.
 
-Remainder: x-tagger is still in beta version and one-person project.
+Remainder: x-tagger is currently in beta release and one-person project.
 
 ## Examples
 
