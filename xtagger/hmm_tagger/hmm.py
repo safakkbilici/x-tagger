@@ -75,11 +75,17 @@ class HiddenMarkovModel():
                             N = len(self._train_tagged_words)
                             unigram = len([tup[1] for tup in self._train_tagged_words if tup[1] == tag3]) / N
 
-                            p_t2t3, p_t2 = get_transition(tag2, tag3, self._train_tagged_words)
-                            bigram = p_t2t3 / p_t2
+                            try:
+                                p_t2t3, p_t2 = get_transition(tag2, tag3, self._train_tagged_words)
+                                bigram = p_t2t3 / p_t2
+                            except:
+                                bigram = 0
 
-                            p_t1t2t3, p_t1t2 = get_transition_2(tag1, tag2, tag3, self._train_tagged_words)
-                            trigram = p_t1t2t3/p_t1t2
+                            try:
+                                p_t1t2t3, p_t1t2 = get_transition_2(tag1, tag2, tag3, self._train_tagged_words)
+                                trigram = p_t1t2t3/p_t1t2
+                            except:
+                                trigram = 0
 
                             self._tag2tag_matrix[i, j, k] = lambdas[0] * unigram + lambdas[1] * bigram + lambdas[2] * trigram
                             t.update()
