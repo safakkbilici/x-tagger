@@ -1,3 +1,4 @@
+import re
 class EnglishRegExTagger(object):
     def __init__(self, rules = None, use_default = True):
         self.use_default = use_default
@@ -29,3 +30,12 @@ class EnglishRegExTagger(object):
             return self.default
         else:
             return self.patterns
+        
+    def tag(self, word):
+        patterns = self.get_patterns()
+        found = -1
+        for rule in patterns:
+            f = re.match(rule[0], word)
+            if f != None:
+                return rule[1]
+        return found
