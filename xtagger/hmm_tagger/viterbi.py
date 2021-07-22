@@ -14,7 +14,7 @@ class Viterbi(object):
                  indexing = ["NUM","CONJ","X","ADJ","DET","VERB","NOUN","PRT","ADV",".","ADP","PRON"]):
         """
         decodes maximum probabilities at evaluation and inference time
-        with dynamic viterbi decoder
+        with dynamic viterbi decoder.
         """
         
         self._words = words
