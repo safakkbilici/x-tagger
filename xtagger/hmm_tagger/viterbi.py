@@ -4,7 +4,13 @@ from xtagger.hmm_tagger.hmm_utils import get_emission, \
     get_transition, get_transition_2
 
 class Viterbi(object):
-    def __init__(self, words, tag2tag_matrix, train_set, extend_to = "bigram", start = ".",
+    def __init__(self,
+                 words,
+                 tag2tag_matrix,
+                 train_set,
+                 extend_to = "bigram",
+                 start = ".",
+                 morphological = None,
                  indexing = ["NUM","CONJ","X","ADJ","DET","VERB","NOUN","PRT","ADV",".","ADP","PRON"]):
         self._words = words
         self._tag2tag_matrix = tag2tag_matrix
@@ -13,6 +19,7 @@ class Viterbi(object):
         self._train_set = train_set
         self._extended = ["bigram", "trigram","deleted_interpolation"]
         self._start = start
+        self._morphological = morphological
 
         # not neccesary
         if self._extend_to not in self._extended:
@@ -48,8 +55,16 @@ class Viterbi(object):
                 p.append(state_probability)
 
             pmax = max(p)
-            state_max = T[p.index(pmax)]
-            state.append(state_max)
+            if self._morphological != None and pmax == 0:
+                state_max = self._morphological.tag(word)
+                if state_max != -1:
+                    state.append(state_max)
+                else:
+                    state_max = T[p.index(pmax)]
+                    state.append(state_max)
+            else:
+                state_max = T[p.index(pmax)]
+                state.append(state_max)
 
         return list(zip(self._words, state))
 

@@ -4,17 +4,18 @@ from tqdm import tqdm
 from xtagger.hmm_tagger.viterbi import Viterbi
 from xtagger.hmm_tagger.hmm_utils import get_emission, \
     get_transition, get_transition_2, deleted_interpolation
+from xtagger.utils.regex import EnglishRegExTagger
 
 class HiddenMarkovModel():
-    def __init__(self, extend_to = "bigram"):
+    def __init__(self, extend_to = "bigram", language="en", morphological = None):
         
         self._extend_to = extend_to
-        
+        self._morphological = morphological
         self._extended = ["bigram", "trigram","deleted_interpolation"]
         if self._extend_to not in self._extended:
             raise ValueError("Higher than trigrams are not currently supported. Would you want to contribute?")
 
-    def fit(self, train_set, start_token = ".", language="en"):
+    def fit(self, train_set, start_token = "."):
         # multilinguality is not supported yet, but it is best practice to pass language.
         # start_token is neccesary for calculating probabilities on padded tokens
         self._train_set = train_set
@@ -23,6 +24,8 @@ class HiddenMarkovModel():
         self._vocab = {word for word,tag in self._train_tagged_words}
         self._indexing = list(self._tags)
         self._start_token = start_token
+
+        self.check_morphologic_tags()
 
         if start_token not in self._tags:
             raise ValueError(f"Unknown start token: {start_token}")
@@ -116,8 +119,15 @@ class HiddenMarkovModel():
         test_tagged_words = [tup[0] for sent in test_subsamples for tup in sent]
 
 
-        viterbi_object = Viterbi(test_tagged_words, self._tag2tag_matrix, self._train_tagged_words,
-                               self._extend_to, self._start_token, self._indexing)
+        viterbi_object = Viterbi(
+            words = test_tagged_words,
+            tag2tag_matrix = self._tag2tag_matrix,
+            train_set = self._train_tagged_words,
+            extend_to = self._extend_to,
+            start = self._start_token,
+            morphological = self._morphological,
+            indexing = self._indexing
+        )
 
         if self._extend_to == "bigram":
             tagged_seq = viterbi_object.fit_bigram()
@@ -135,8 +145,15 @@ class HiddenMarkovModel():
             return "Done."
 
     def predict(self, words):
-        viterbi_object = Viterbi(words, self._tag2tag_matrix, self._train_tagged_words,
-                                 self._extend_to, self._start_token, self._indexing)
+        viterbi_object = Viterbi(
+            words = words,
+            tag2tag_matrix = self._tag2tag_matrix,
+            train_set = self._train_tagged_words,
+            extend_to = self._extend_to,
+            start = self._start_token,
+            morphological = self._morphological,
+            indexing = self._indexing
+        )
 
         if self._extend_to == "bigram":
             tagged_seq = viterbi_object.fit_bigram()
@@ -144,6 +161,17 @@ class HiddenMarkovModel():
         else:
             tagged_seq = viterbi_object.fit_trigram()
         return tagged_seq
+
+    def check_morphologic_tags(self):
+        if self._morphological == None:
+            return
+        elif type(self._morphological) != EnglishRegExTagger:
+            raise TypeError("The tagger must be [Language]RegExTagger")
+        else:
+            self.morphological_tags = [pair[1] for pair in self._morphological.get_patterns()]
+            for tag in self.morphological_tags:
+                if tag not in self._tags:
+                    raise ValueError("Passing different tags from training set is ambigious.")
 
     def set_test_set(self, test):
         self._test_set = test_set
