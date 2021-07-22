@@ -1,9 +1,9 @@
 class EnglishRegExTagger(object):
-    def __init__(self, use_default = True, *args):
+    def __init__(self, rules = None, use_default = True):
         self.use_default = use_default
-        if args is not None:
+        if rules is not None:
             self.patterns = []
-            for pattern in args:
+            for pattern in rules:
                 if type(pattern) != tuple:
                     raise TypeError("Matching must be tuple")
                 self.patterns.append(pattern)
@@ -21,11 +21,11 @@ class EnglishRegExTagger(object):
 
             if hasattr(self,"patterns") and self.patterns:
                 for pattern in self.patterns:
-                    self.default.append(pattern)
+                    if pattern not in self.default:
+                        self.default.append(pattern)
 
     def get_patterns(self):
         if self.use_default:
             return self.default
         else:
             return self.patterns
-
