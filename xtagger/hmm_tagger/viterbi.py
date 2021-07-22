@@ -12,6 +12,11 @@ class Viterbi(object):
                  start = ".",
                  morphological = None,
                  indexing = ["NUM","CONJ","X","ADJ","DET","VERB","NOUN","PRT","ADV",".","ADP","PRON"]):
+        """
+        decodes maximum probabilities at evaluation and inference time
+        with dynamic viterbi decoder
+        """
+        
         self._words = words
         self._tag2tag_matrix = tag2tag_matrix
         self._indexing = indexing
