@@ -12,10 +12,11 @@ x-tagger is a Natural Language Processing toolkit for token classification in it
 
 * There are upcoming features soon:
   * Bidirectional Hidden Markov Models.
-  * Morphological way to dealing with unkown words (language dependent).
+  * <s>Morphological way to dealing with unkown words (language dependent)</s>.
   * Maximum Entropy Markov Models (MEMM).
   * Prior RegEx tagger for computational efficiency in HMMs (language dependent).
   * Beam search.
+  * Different metrics.
 
 Remainder: x-tagger is currently in beta release and one-person project.
 
