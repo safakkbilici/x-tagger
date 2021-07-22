@@ -9,3 +9,4 @@ from xtagger.utils.data_utils import xtagger_dataset_to_df
 from xtagger.utils.data_utils import df_to_torchtext_data
 from xtagger.utils.data_utils import df_to_hf_dataset
 from xtagger.utils.data_utils import text_to_xtagger_dataset
+from xtagger.utils.regex import EnglishRegExTagger
