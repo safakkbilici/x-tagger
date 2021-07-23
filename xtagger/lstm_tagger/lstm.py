@@ -13,11 +13,7 @@ class LSTM(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, text):
-        print("input shape: ",text.shape)
         embedded = self.dropout(self.embedding(text))
-        print("embedded shape: ",embedded.shape)
         outputs, (hidden, cell) = self.lstm(embedded)
-        print("outputs shape: ",outputs.shape)
         preds= self.fc(self.dropout(outputs))
-        print("preds shape: ",preds.shape)
         return preds
