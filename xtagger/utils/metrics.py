@@ -1,5 +1,7 @@
 import numpy as np
-from sklearn.metrics import f1_score
+from sklearn.metrics import (
+    f1_score, accuracy_score
+)
 
 def f1(y_true, y_pred):
     f1_micro = f1_score(y_true, y_pred, average="micro")
@@ -8,7 +10,8 @@ def f1(y_true, y_pred):
     return {"Avg. F1 (w)": f1_w, "Avg. F1 (micro)": f1_micro, "Avg. F1 (macro)": f1_macro}
 
 def accuracy(y_true, y_pred):
-    raise NotImplementedError()
+    acc = accuracy_score(y_true, y_pred)
+    return acc
 
 def tag2onehot(preds, ground_truth, tags):
     digit_pred = np.array([tags.index(tag) for tag in preds])
