@@ -5,6 +5,7 @@ from xtagger.hmm_tagger.viterbi import Viterbi
 from xtagger.hmm_tagger.hmm_utils import get_emission, \
     get_transition, get_transition_2, deleted_interpolation
 from xtagger.utils.regex import EnglishRegExTagger
+from xtagger.utils import metrics
 
 class HiddenMarkovModel():
     def __init__(self, extend_to = "bigram", language="en", morphological = None):
@@ -95,7 +96,7 @@ class HiddenMarkovModel():
             print(f"λ1: {lambdas[0]}, λ2: {lambdas[1]}, λ3: {lambdas[2]}")
 
 
-    def evaluate(self, test_set, random_size = 30, seed = None, return_all=False):
+    def evaluate(self, test_set, random_size = 30, seed = None, return_all=False, eval_metrics=["acc"], result_type = "%"):
 
         # Evaluation on full test set takes soooooo long
         # because it calls viterbi decoder with O(n^2) with bigram extension
@@ -105,6 +106,7 @@ class HiddenMarkovModel():
 
         self._test_set = test_set
         self._test_tagged_words = [tup for sent in self._test_set for tup in sent]
+        self._metrics = eval_metrics
 
         if seed != None:
             random.seed(seed)
@@ -135,23 +137,33 @@ class HiddenMarkovModel():
         else:
             tagged_seq = viterbi_object.fit_trigram()
 
-        check = [i for i, j in zip(tagged_seq, test_run_base) if i == j] 
-        accuracy = len(check)/len(tagged_seq)
-        print('Accuracy: {}%'.format(accuracy*100))
+        preds = [pred_pair[1] for pred_pair in tagged_seq]
+        ground_truth = [gt_pair[1] for gt_pair in test_run_base]
+        preds_onehot, gt_onehot = metrics.tag2onehot(preds, ground_truth, self._indexing)
+
+        results = {}
+        result_t = 100 if result_type=="%" else 1
+        print(result_t)
+        if "avg_f1" in eval_metrics:
+            f1s = metrics.f1(gt_onehot, preds_onehot)
+            f1s.update((key, value * result_t) for key, value in f1s.items())
+            results["avg_f1"] = f1s
+        if "acc" in eval_metrics:
+            acc = metrics.accuracy(gt_onehot, preds_onehot) * result_t
+            results["acc"] = acc
 
         if return_all == True:
-            return tagged_set
-        else:
-            return "Done."
+            return results, tagged_set
+        return results
 
-    def predict(self, words):
+    def predict(self, words, morphological=True):
         viterbi_object = Viterbi(
             words = words,
             tag2tag_matrix = self._tag2tag_matrix,
             train_set = self._train_tagged_words,
             extend_to = self._extend_to,
             start = self._start_token,
-            morphological = self._morphological,
+            morphological = self._morphological if morphological==True else None,
             indexing = self._indexing
         )
 
@@ -191,3 +203,9 @@ class HiddenMarkovModel():
 
     def get_transition_matrix(self):
         return self._tag2tag_matrix
+
+    def get_eval_metrics(self):
+        return self._metrics
+
+    def get_metric_onehot_indexing(self):
+        return self._indexing
