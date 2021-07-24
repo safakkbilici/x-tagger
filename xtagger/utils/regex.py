@@ -1,7 +1,13 @@
 import re
+
 class EnglishRegExTagger(object):
-    def __init__(self, rules = None, use_default = True):
+    def __init__(self, rules = None, use_default = True, mode = "morphological"):
+        self._modes = ["morphological", "prior"]
+        if mode not in self._modes:
+            raise ValueError("Supporting only morphological or prior tagging for regex.")
+        
         self.use_default = use_default
+        self.language = "en"
         if rules is not None:
             self.patterns = []
             for pattern in rules:
@@ -39,3 +45,9 @@ class EnglishRegExTagger(object):
             if f != None:
                 return rule[1]
         return found
+
+
+class AutoRegExTagger(object):
+    def __init__(self):
+        raise NotImplementedError()
+        
