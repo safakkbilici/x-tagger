@@ -1,17 +1,25 @@
 import numpy as np
 import random
-from tqdm import tqdm
+from tqdm.auto import tqdm
+
+import xtagger
 from xtagger.hmm_tagger.viterbi import Viterbi
-from xtagger.hmm_tagger.hmm_utils import get_emission, \
-    get_transition, get_transition_2, deleted_interpolation
+from xtagger.hmm_tagger.hmm_utils import (
+    get_emission,
+    get_transition,
+    get_transition_2,
+    deleted_interpolation
+)
+
 from xtagger.utils.regex import EnglishRegExTagger
 from xtagger.utils import metrics
 
 class HiddenMarkovModel():
-    def __init__(self, extend_to = "bigram", language="en", morphological = None):
+    def __init__(self, extend_to = "bigram", language="en", morphological = None, prior = None):
         
         self._extend_to = extend_to
         self._morphological = morphological
+        self._prior = prior
         self._extended = ["bigram", "trigram","deleted_interpolation"]
         if self._extend_to not in self._extended:
             raise ValueError("Higher than trigrams are not currently supported. Would you want to contribute?")
@@ -27,6 +35,7 @@ class HiddenMarkovModel():
         self._start_token = start_token
 
         self.check_morphologic_tags()
+        self.check_prior_tags()
 
         if start_token not in self._tags:
             raise ValueError(f"Unknown start token: {start_token}")
@@ -96,7 +105,7 @@ class HiddenMarkovModel():
             print(f"λ1: {lambdas[0]}, λ2: {lambdas[1]}, λ3: {lambdas[2]}")
 
 
-    def evaluate(self, test_set, random_size = 30, seed = None, return_all=False, eval_metrics=["acc"], result_type = "%"):
+    def evaluate(self, test_set, random_size = 30, seed = None, return_all=False, eval_metrics=["acc"], result_type = "%", morphological = False, prior = True):
 
         # Evaluation on full test set takes soooooo long
         # because it calls viterbi decoder with O(n^2) with bigram extension
@@ -113,6 +122,7 @@ class HiddenMarkovModel():
 
         if random_size != -1:
             random_sample_indices = [random.randint(1,len(self._test_set)-1) for x in range(random_size)]
+            self._eval_indices = random_sample_indices
             test_subsamples = [self._test_set[i] for i in random_sample_indices]
         else:
             test_subsamples = [self._test_set[i] for i in range(len(self._test_set))]
@@ -127,7 +137,8 @@ class HiddenMarkovModel():
             train_set = self._train_tagged_words,
             extend_to = self._extend_to,
             start = self._start_token,
-            morphological = self._morphological,
+            morphological = self._morphological if morphological==True else None,
+            prior = self._prior if prior==True else None,
             indexing = self._indexing
         )
 
@@ -143,7 +154,6 @@ class HiddenMarkovModel():
 
         results = {}
         result_t = 100 if result_type=="%" else 1
-        print(result_t)
         if "avg_f1" in eval_metrics:
             f1s = metrics.f1(gt_onehot, preds_onehot)
             f1s.update((key, value * result_t) for key, value in f1s.items())
@@ -156,7 +166,7 @@ class HiddenMarkovModel():
             return results, tagged_set
         return results
 
-    def predict(self, words, morphological=True):
+    def predict(self, words, morphological = False, prior = False):
         viterbi_object = Viterbi(
             words = words,
             tag2tag_matrix = self._tag2tag_matrix,
@@ -164,6 +174,7 @@ class HiddenMarkovModel():
             extend_to = self._extend_to,
             start = self._start_token,
             morphological = self._morphological if morphological==True else None,
+            prior = self._prior if prior==True else None,
             indexing = self._indexing
         )
 
@@ -177,11 +188,22 @@ class HiddenMarkovModel():
     def check_morphologic_tags(self):
         if self._morphological == None:
             return
-        elif type(self._morphological) != EnglishRegExTagger:
+        elif type(self._morphological) not in xtagger.IMPLEMENTED_REGEX_LANGUAGES:
             raise TypeError("The tagger must be [Language]RegExTagger")
         else:
             self.morphological_tags = [pair[1] for pair in self._morphological.get_patterns()]
             for tag in self.morphological_tags:
+                if tag not in self._tags:
+                    raise ValueError("Passing different tags from training set is ambigious.")
+
+    def check_prior_tags(self):
+        if self._prior == None:
+            return
+        elif type(self._prior) not in xtagger.IMPLEMENTED_REGEX_LANGUAGES:
+            raise TypeError("The tagger must be [Language]RegExTagger")
+        else:
+            self.prior_tags = [pair[1] for pair in self._prior.get_patterns()]
+            for tag in self.prior_tags:
                 if tag not in self._tags:
                     raise ValueError("Passing different tags from training set is ambigious.")
 
@@ -209,3 +231,9 @@ class HiddenMarkovModel():
 
     def get_metric_onehot_indexing(self):
         return self._indexing
+
+    def eval_indices(self):
+        if hasattr(self, "_eval_indices"):
+            return self._eval_indices
+        else:
+            return -1

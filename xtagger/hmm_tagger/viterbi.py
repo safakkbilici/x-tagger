@@ -1,7 +1,10 @@
-from tqdm import tqdm
+from tqdm.auto import tqdm
 import numpy as np
-from xtagger.hmm_tagger.hmm_utils import get_emission, \
-    get_transition, get_transition_2
+from xtagger.hmm_tagger.hmm_utils import (
+    get_emission,
+    get_transition,
+    get_transition_2
+)
 
 class Viterbi(object):
     def __init__(self,
@@ -11,6 +14,7 @@ class Viterbi(object):
                  extend_to = "bigram",
                  start = ".",
                  morphological = None,
+                 prior = None,
                  indexing = ["NUM","CONJ","X","ADJ","DET","VERB","NOUN","PRT","ADV",".","ADP","PRON"]):
         """
         decodes maximum probabilities at evaluation and inference time
@@ -25,6 +29,7 @@ class Viterbi(object):
         self._extended = ["bigram", "trigram","deleted_interpolation"]
         self._start = start
         self._morphological = morphological
+        self._prior = prior
 
         # not neccesary
         if self._extend_to not in self._extended:
@@ -39,6 +44,13 @@ class Viterbi(object):
         T = list(set([pair[1] for pair in self._train_set]))
         for key, word in enumerate(tqdm(self._words)):
             p = []
+            
+            if self._prior != None:
+                state_max = self._prior.tag(word)
+                if state_max != -1:
+                    state.append(state_max)
+                    continue
+                
             for tag in T:
                 if key == 0:
                     # previous word for first word is actually padding
@@ -81,6 +93,13 @@ class Viterbi(object):
             for key, word in enumerate(self._words):
                 p1 = []
                 p2 = []
+                
+                if self._prior != None:
+                    state_max = self._prior.tag(word)
+                    if state_max != -1:
+                        state.append(state_max)
+                        continue
+                    
                 for tag2 in T:
                     for tag1 in T:
                         if key==0:
@@ -116,8 +135,16 @@ class Viterbi(object):
                     p2.append(pmax_inner)
 
                 pmax = max(p2)
-                state_max = T[p2.index(pmax)]
-                state.append(state_max)
+                if self._morphological != None and pmax == 0:
+                    state_max = self._morphological.tag(word)
+                    if state_max != -1:
+                        state.append(state_max)
+                    else:
+                        state_max = T[p.index(pmax)]
+                        state.append(state_max)
+                else:
+                    state_max = T[p2.index(pmax)]
+                    state.append(state_max)
 
         return list(zip(self._words, state))
 
