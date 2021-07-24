@@ -14,7 +14,7 @@ x-tagger is a Natural Language Processing toolkit for token classification in it
   * Bidirectional Hidden Markov Models.
   * <s>Morphological way to dealing with unkown words (language dependent)</s>.
   * Maximum Entropy Markov Models (MEMM).
-  * Prior RegEx tagger for computational efficiency in HMMs (language dependent).
+  * <s>Prior RegEx tagger for computational efficiency in HMMs (language dependent)</s>.
   * Beam search.
   * <s>Different metrics</s>.
 
