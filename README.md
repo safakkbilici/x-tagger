@@ -17,6 +17,8 @@ x-tagger is a Natural Language Processing toolkit for token classification in it
   * <s>Prior RegEx tagger for computational efficiency in HMMs (language dependent)</s>.
   * Beam search.
   * <s>Different metrics</s>.
+  * LSTM-CNN, LSTM-CRF
+  * more metrics for LSTM\*.
 
 Remainder: x-tagger is currently in beta release and one-person project.
 
