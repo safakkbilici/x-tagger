@@ -11,7 +11,11 @@ from xtagger.hmm_tagger.hmm_utils import (
     deleted_interpolation
 )
 
-from xtagger.utils.regex import EnglishRegExTagger
+from xtagger.utils.regex import (
+    check_prior_tags,
+    check_morphological_tags
+)
+
 from xtagger.utils import metrics
 
 class HiddenMarkovModel():
@@ -34,8 +38,8 @@ class HiddenMarkovModel():
         self._indexing = list(self._tags)
         self._start_token = start_token
 
-        self.check_morphologic_tags()
-        self.check_prior_tags()
+        check_morphological_tags(self._morphological, self._tags)
+        check_prior_tags(self._prior, self._tags)
 
         if start_token not in self._tags:
             raise ValueError(f"Unknown start token: {start_token}")
@@ -117,6 +121,8 @@ class HiddenMarkovModel():
         self._test_tagged_words = [tup for sent in self._test_set for tup in sent]
         self._metrics = eval_metrics
 
+        metrics.check_eval_metrics(self._metrics)
+
         if seed != None:
             random.seed(seed)
 
@@ -184,28 +190,6 @@ class HiddenMarkovModel():
         else:
             tagged_seq = viterbi_object.fit_trigram()
         return tagged_seq
-
-    def check_morphologic_tags(self):
-        if self._morphological == None:
-            return
-        elif type(self._morphological) not in xtagger.IMPLEMENTED_REGEX_LANGUAGES:
-            raise TypeError("The tagger must be [Language]RegExTagger")
-        else:
-            self.morphological_tags = [pair[1] for pair in self._morphological.get_patterns()]
-            for tag in self.morphological_tags:
-                if tag not in self._tags:
-                    raise ValueError("Passing different tags from training set is ambigious.")
-
-    def check_prior_tags(self):
-        if self._prior == None:
-            return
-        elif type(self._prior) not in xtagger.IMPLEMENTED_REGEX_LANGUAGES:
-            raise TypeError("The tagger must be [Language]RegExTagger")
-        else:
-            self.prior_tags = [pair[1] for pair in self._prior.get_patterns()]
-            for tag in self.prior_tags:
-                if tag not in self._tags:
-                    raise ValueError("Passing different tags from training set is ambigious.")
 
     def set_test_set(self, test):
         self._test_set = test_set
