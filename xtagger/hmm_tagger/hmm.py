@@ -109,7 +109,7 @@ class HiddenMarkovModel():
             print(f"λ1: {lambdas[0]}, λ2: {lambdas[1]}, λ3: {lambdas[2]}")
 
 
-    def evaluate(self, test_set, random_size = 30, seed = None, return_all=False, eval_metrics=["acc"], result_type = "%", morphological = False, prior = True):
+    def evaluate(self, test_set, random_size = 30, seed = None, return_all=False, eval_metrics=["acc"], result_type = "%", morphological = True, prior = True):
 
         # Evaluation on full test set takes soooooo long
         # because it calls viterbi decoder with O(n^2) with bigram extension
@@ -158,7 +158,7 @@ class HiddenMarkovModel():
         ground_truth = [gt_pair[1] for gt_pair in test_run_base]
         preds_onehot, gt_onehot = metrics.tag2onehot(preds, ground_truth, self._indexing)
 
-        results = metrics.metric_results(gt_onehot, preds_onehot, eval_metrics, result_type)
+        results = metrics.metric_results(gt_onehot, preds_onehot, eval_metrics, result_type, self._indexing)
             
 
         if return_all == True:
