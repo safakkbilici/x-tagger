@@ -16,3 +16,10 @@ from xtagger.utils.regex import EnglishRegExTagger
 IMPLEMENTED_REGEX_LANGUAGES = [
     EnglishRegExTagger,
 ]
+
+IMPLEMENTED_METRICS = [
+    "avg_f1",
+    "avg_precision",
+    "avg_recall",
+    "acc",
+]
