@@ -3,9 +3,16 @@ from sklearn.metrics import (
     f1_score,
     accuracy_score,
     recall_score,
-    precision_score
+    precision_score,
+    classification_report
 )
 import xtagger
+
+class xMetrics():
+    def __init__(self, y_true, y_pred, tags=None):
+        self.y_true = y_true
+        self.y_pred = y_pred
+        self.tags = tags
 
 def check_eval_metrics(metrics):
     if not metrics:
@@ -13,32 +20,86 @@ def check_eval_metrics(metrics):
     else:
         for metric in metrics:
             if metric not in xtagger.IMPLEMENTED_METRICS:
-                raise ValueError(f'"{metric}" not found in implemented metrics, current implemented metrics are: {xtagger.IMPLEMENTED_METRICS}')
+                if type(metric) == str:
+                    raise ValueError(f'"{metric}" not found in implemented metrics, current implemented metrics are: {xtagger.IMPLEMENTED_METRICS}')
+            elif type(metric) != str and metric.__bases__[0] != xMetrics:
+                raise ValueError(f'User defined metric {metric} must be inherited from xtagger.utils.metrics.xMetrics')
 
 
-def metric_results(gt, preds, eval_metrics, result_type):
+def metric_results(gt, preds, eval_metrics, result_type, tags):
     results = {}
     result_t = 100 if result_type=="%" else 1
-    
-    if "avg_f1" in eval_metrics:
-        f1s = f1(gt, preds)
-        f1s.update((key, value * result_t) for key, value in f1s.items())
-        results["avg_f1"] = f1s
-        
-    if "acc" in eval_metrics:
-        acc = accuracy(gt, preds) * result_t
-        results["acc"] = acc
-        
-    if "avg_recall" in eval_metrics:
-        recalls = recall(gt, preds)
-        recalls.update((key, value * result_t) for key, value in recalls.items())
-        results["avg_recall"] = recalls
 
-    if "avg_precision" in eval_metrics:
-        precisions = precision(gt, preds)
-        precisions.update((key, value * result_t) for key, value in precisions.items())
-        results["avg_precision"] = precisions
+    for metric_ in eval_metrics:
+    
+        if metric_ == "avg_f1":
+            f1s = f1(gt, preds)
+            f1s.update((key, value * result_t) for key, value in f1s.items())
+            results["avg_f1"] = f1s
+            
+        if metric_ == "acc":
+            acc = accuracy(gt, preds) * result_t
+            results["acc"] = acc
+        
+        if metric_ == "avg_recall":
+            recalls = recall(gt, preds)
+            recalls.update((key, value * result_t) for key, value in recalls.items())
+            results["avg_recall"] = recalls
+
+        if metric_ == "avg_precision":
+            precisions = precision(gt, preds)
+            precisions.update((key, value * result_t) for key, value in precisions.items())
+            results["avg_precision"] = precisions
+
+        if metric_ == "classwise_f1":
+            c_f1s = multiclass_f1(gt, preds, tags)
+            c_f1s.update((key, value * result_t) for key, value in c_f1s.items())
+            results["classwise_f1"] = c_f1s
+
+        if metric_ == "classwise_precision":
+            c_precisions = multiclass_precision(gt, preds, tags)
+            c_precisions.update((key, value * result_t) for key, value in c_precisions.items())
+            results["classwise_precision"] = c_precisions
+
+        if metric_ == "classwise_recall":
+            c_recalls = multiclass_recall(gt, preds, tags)
+            c_recalls.update((key, value * result_t) for key, value in c_recalls.items())
+            results["classwise_recall"] = c_recalls
+
+        if metric_ == "report" in eval_metrics:
+            print(classification_report(gt, preds, target_names = tags))
+
+        if type(metric_) != str and metric_.__bases__[0] == xMetrics:
+            user_metric = metric_(gt, preds, tags)
+            results[str(metric_.__name__)] = user_metric()
     return results
+
+def multiclass_f1(y_true, y_pred, tags):
+    MODE = "classwise_f1"
+    output_dict = classification_report(y_true, y_pred, target_names = tags, output_dict = True)
+    f1s = {}
+    for tag_name in output_dict.keys():
+        if tag_name in tags:
+            f1s[tag_name] = output_dict[tag_name]["f1-score"]
+    return f1s
+
+def multiclass_recall(y_true, y_pred, tags):
+    MODE = "classwise_recall"
+    output_dict = classification_report(y_true, y_pred, target_names = tags, output_dict = True)
+    recalls = {}
+    for tag_name in output_dict.keys():
+        if tag_name in tags:
+            recalls[tag_name] = output_dict[tag_name]["recall"]
+    return recalls
+
+def multiclass_precision(y_true, y_pred, tags):
+    MODE = "classwise_precision"
+    output_dict = classification_report(y_true, y_pred, target_names = tags, output_dict = True)
+    precisions = {}
+    for tag_name in output_dict.keys():
+        if tag_name in tags:
+            precisions[tag_name] = output_dict[tag_name]["precision"]
+    return precisions
 
 def recall(y_true, y_pred):
     MODE = "avg_recall"
