@@ -18,7 +18,7 @@ def check_eval_metrics(metrics):
 
 def metric_results(gt, preds, eval_metrics, result_type):
     results = {}
-    result_type = 100 if result_type=="%" else 1
+    result_t = 100 if result_type=="%" else 1
     
     if "avg_f1" in eval_metrics:
         f1s = f1(gt, preds)
