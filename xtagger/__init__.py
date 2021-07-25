@@ -1,5 +1,3 @@
-import transformers
-import datasets
 from xtagger.hmm_tagger.hmm import HiddenMarkovModel
 from xtagger.lstm_tagger.lstm_tagger import LSTMForTagging
 from xtagger.bert_tagger.bert import BERTForTagging
