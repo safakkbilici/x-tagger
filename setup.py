@@ -4,13 +4,13 @@ from setuptools import setup, find_packages
 setup(
     name = "x-tagger",
     packages=find_packages(),
-    version = "0.1.3",
+    version = "0.1.4",
     license = "MIT",
     description = "A Natural Language Processing toolkit for token classification in its simplest form.",
     author = "Şafak Bilici",
     author_email = "safakk.bilici.2112@gmail.com",
     url = "https://github.com/safakkbilici/x-tagger",
-    download_url = "https://github.com/safakkbilici/x-tagger/archive/refs/tags/0.1.3.tar.gz",
+    download_url = "https://github.com/safakkbilici/x-tagger/archive/refs/tags/0.1.4.tar.gz",
     keywords = [
         "Hidden Markov Models",
         "Token Classification",
