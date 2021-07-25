@@ -33,3 +33,9 @@ Library is still-in-developement. So building from source is not recommended. Us
 ```bash
 pip install x-tagger
 ```
+
+## Beautiful Carbon Example
+
+<p align="center">
+  <img src="assets/carbon.png"/>
+</p>
