@@ -14,7 +14,31 @@ def check_eval_metrics(metrics):
         for metric in metrics:
             if metric not in xtagger.IMPLEMENTED_METRICS:
                 raise ValueError(f'"{metric}" not found in implemented metrics, current implemented metrics are: {xtagger.IMPLEMENTED_METRICS}')
+
+
+def metric_results(gt, preds, eval_metrics, result_type):
+    results = {}
+    result_type = 100 if result_type=="%" else 1
+    
+    if "avg_f1" in eval_metrics:
+        f1s = f1(gt, preds)
+        f1s.update((key, value * result_t) for key, value in f1s.items())
+        results["avg_f1"] = f1s
         
+    if "acc" in eval_metrics:
+        acc = accuracy(gt, preds) * result_t
+        results["acc"] = acc
+        
+    if "avg_recall" in eval_metrics:
+        recalls = recall(gt, preds)
+        recalls.update((key, value * result_t) for key, value in recalls.items())
+        results["avg_recall"] = recalls
+
+    if "avg_precision" in eval_metrics:
+        precisions = precision(gt, preds)
+        precisions.update((key, value * result_t) for key, value in precisions.items())
+        results["avg_precision"] = precisions
+    return results
 
 def recall(y_true, y_pred):
     MODE = "avg_recall"
