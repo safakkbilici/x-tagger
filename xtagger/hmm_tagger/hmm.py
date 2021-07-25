@@ -158,15 +158,8 @@ class HiddenMarkovModel():
         ground_truth = [gt_pair[1] for gt_pair in test_run_base]
         preds_onehot, gt_onehot = metrics.tag2onehot(preds, ground_truth, self._indexing)
 
-        results = {}
-        result_t = 100 if result_type=="%" else 1
-        if "avg_f1" in eval_metrics:
-            f1s = metrics.f1(gt_onehot, preds_onehot)
-            f1s.update((key, value * result_t) for key, value in f1s.items())
-            results["avg_f1"] = f1s
-        if "acc" in eval_metrics:
-            acc = metrics.accuracy(gt_onehot, preds_onehot) * result_t
-            results["acc"] = acc
+        results = metrics.metric_results(gt_onehot, preds_onehot, eval_metrics, result_type)
+            
 
         if return_all == True:
             return results, tagged_set
