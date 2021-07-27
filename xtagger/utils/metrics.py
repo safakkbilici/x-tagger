@@ -106,9 +106,9 @@ def recall(y_true, y_pred):
     recall_micro = recall_score(y_true, y_pred, average="micro")
     recall_macro = recall_score(y_true, y_pred, average="macro")
     recall_w = recall_score(y_true, y_pred, average="weighted")
-    return {"Avg. Recall (w)": recall_w,
-            "Avg. Recall (micro)": recall_micro,
-            "Avg. Recall (macro)": recall_macro
+    return {"weigted": recall_w,
+            "micro": recall_micro,
+            "macro": recall_macro
     }
 
 def precision(y_true, y_pred):
@@ -116,9 +116,9 @@ def precision(y_true, y_pred):
     precision_micro = precision_score(y_true, y_pred, average="micro")
     precision_macro = precision_score(y_true, y_pred, average="macro")
     precision_w = precision_score(y_true, y_pred, average="weighted")
-    return {"Avg. Precision (w)": precision_w,
-            "Avg. Precision (micro)": precision_micro,
-            "Avg. Precision (macro)": precision_macro
+    return {"weighted": precision_w,
+            "micro": precision_micro,
+            "macro": precision_macro
     }
 
 def f1(y_true, y_pred):
@@ -126,9 +126,9 @@ def f1(y_true, y_pred):
     f1_micro = f1_score(y_true, y_pred, average="micro")
     f1_macro = f1_score(y_true, y_pred, average="macro")
     f1_w = f1_score(y_true, y_pred, average="weighted")
-    return {"Avg. F1 (w)": f1_w,
-            "Avg. F1 (micro)": f1_micro,
-            "Avg. F1 (macro)": f1_macro
+    return {"weighted": f1_w,
+            "micro": f1_micro,
+            "macro": f1_macro
     }
 
 def accuracy(y_true, y_pred):
