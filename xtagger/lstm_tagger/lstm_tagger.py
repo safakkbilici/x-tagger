@@ -5,9 +5,11 @@ import time
 import random
 import torch.nn as nn
 import torch.optim as optim
+from tqdm.auto import tqdm
 
 from xtagger.utils.time_utils import epoch_time
 from xtagger.lstm_tagger.lstm import LSTM
+from xtagger.utils import metrics
 
 class LSTMForTagging(object):
     def __init__(self, TEXT, TAGS, embedding_dim=100, hidden_dim=128,
@@ -54,113 +56,147 @@ class LSTMForTagging(object):
         self.optimizer = optim.Adam(self.model.parameters())
 
 
-    def categorical_accuracy(self,preds, y, tag_pad_idx):
-        max_preds = preds.argmax(dim = 1, keepdim = True) # get the index of the max probability
-        non_pad_elements = (y != tag_pad_idx).nonzero()
-        correct = max_preds[non_pad_elements].squeeze(1).eq(y[non_pad_elements])
-        return correct.sum() / torch.FloatTensor([y[non_pad_elements].shape[0]])
-
-
-    def train_step(self):
-        epoch_loss = 0
-        epoch_acc = 0
-        self.model.train()
-
-        for batch in self.train_set:
-            text = batch.sentence
-            tags = batch.tags
-
-            self.optimizer.zero_grad()
-            predictions = self.model(text)
-
-            predictions = predictions.view(-1, predictions.shape[-1])
-            tags = tags.view(-1)
-
-            loss = self.criterion(predictions, tags)
-            acc = self.categorical_accuracy(predictions.cpu(), tags.cpu(), self.TAG_PAD_IDX)
-
-            loss.backward()
-
-            self.optimizer.step()
-
-            epoch_loss += loss.item()
-            epoch_acc += acc.item()
-
-        return epoch_loss / len(self.train_set), epoch_acc / len(self.train_set)
-
-    def eval_step(self):
-        epoch_loss = 0
-        epoch_acc = 0
-
-        self.model.eval()
-
-        with torch.no_grad():
-
-            for batch in self.test_set:
-
-                text = batch.sentence
-                tags = batch.tags
-
-                predictions = self.model(text)
-
-                predictions = predictions.view(-1, predictions.shape[-1])
-                tags = tags.view(-1)
-
-                loss = self.criterion(predictions, tags)
-
-                acc = self.categorical_accuracy(predictions.cpu(), tags.cpu(), self.TAG_PAD_IDX)
-
-                epoch_loss += loss.item()
-                epoch_acc += acc.item()
-
-        return epoch_loss / len(self.test_set), epoch_acc / len(self.test_set)
-
-    def fit(self, train_set, test_set, epochs=10, save_name = "lstm_model.pt"):
+    def fit(self, train_set, test_set, epochs=10, save_name = "lstm_model.pt", eval_metrics = ["acc"], result_type = "%"):
         self.train_set = train_set
         self.test_set = test_set
+        self._metrics = eval_metrics
+        self.result_type = result_type
+
+        metrics.check_eval_metrics(self._metrics)
+
+        total = len(train_set) * epochs
+        with tqdm(total = total) as tt:
+            for epoch in range(epochs):
+                for batch in self.train_set:
+                    self.model.train()
+                    text = batch.sentence.permute(1,0)
+                    tags = batch.tags.permute(1,0)
+
+                    self.optimizer.zero_grad()
+
+                    out = self.model.forward(text)
+                    loss = self.criterion(out.permute(0,2,1).float(), tags.long())
+                    loss.backward()
+                    self.optimizer.step()
+                    tt.update()
+                print("Evaluating...")
+                results = self._eval()
+                print(results)
+
+    def evaluate(self, test_set=None, eval_metrics = ["acc"], result_type = "%"):
+        if test_set == None:
+            test_set = self.test_set
+
+        metrics.check_eval_metrics(eval_metrics)
+        test_y_pred = []
+        test_y_true = []
         
-        best_valid_loss = float('inf')
-        for epoch in range(epochs):
-            start_time = time.time()
+        total = len(test_set) * test_set.batch_size
+        with tqdm(total = total) as ee:
+            for batch in test_set:
+                text = batch.sentence.permute(1,0)
+                tags = batch.tags.permute(1,0)
+                with torch.no_grad():
+                    for text_sample, tag_sample in zip(text, tags):
+                        self.model.eval()
+                        out = self.model.forward(text_sample[None,:])
+                        preds = torch.argmax(out, dim=-1).squeeze(dim=0)
 
-            train_loss, train_acc = self.train_step()
-            valid_loss, valid_acc = self.eval_step()
+                        non_pad_elements = (tag_sample != self.TAG_PAD_IDX).nonzero()
+                        non_pad_preds = preds[non_pad_elements].squeeze(dim=-1)
+                        non_pad_targets = tag_sample[non_pad_elements].squeeze(dim=-1)
+                        test_y_pred.extend([self.TAGS.vocab.itos[a] for a in non_pad_preds])
+                        test_y_true.extend([self.TAGS.vocab.itos[a] for a in non_pad_targets])
+                        ee.update()
+                     
+                     
+        test_preds_oh, test_gt_oh = metrics.tag2onehot(test_y_pred, test_y_true, self.TAGS.vocab.itos)
+        results = metrics.metric_results(
+            test_gt_oh,
+            test_preds_oh,
+            self._metrics,
+            self.result_type,
+            self.TAGS.vocab.itos
+        )
 
-            end_time = time.time()
-            epoch_mins, epoch_secs = epoch_time(start_time, end_time)
+        return results
+            
+        
+    def _eval(self):
+        total = len(self.train_set) * self.train_set.batch_size + len(self.test_set) * self.test_set.batch_size
+        eval_loss, eval_count = 0, 0
+        train_loss, train_count = 0, 0
 
-            if valid_loss < best_valid_loss:
-                best_valid_loss = valid_loss
-                torch.save(self.model.state_dict(), save_name)
+        test_y_pred = []
+        test_y_true = []
+        
+        train_y_pred = []
+        train_y_true = []
+        
+        with tqdm(total = total) as ee:
+            for batch in self.test_set:
+                text = batch.sentence.permute(1,0)
+                tags = batch.tags.permute(1,0)
+                with torch.no_grad():
+                    for text_sample, tag_sample in zip(text, tags):
+                        self.model.eval()
+                        eval_count += 1
+                        out = self.model.forward(text_sample[None,:])
+                        preds = torch.argmax(out, dim=-1).squeeze(dim=0)
+                        loss = self.criterion(out.permute(0,2,1).float(), tag_sample[None, :].long())
 
-            print(f"""Epoch: {epoch+1}/{epochs}, Train Loss: {train_loss:.3f}, Train Accuracy: {train_acc*100:.2f}%;
-            Val. Loss: {valid_loss:.3f}, Val. Accuracy: {valid_acc*100:.2f}% | Time Taken: {epoch_mins}m {epoch_secs}s""")
+                        eval_loss += loss.item()
+                        non_pad_elements = (tag_sample != self.TAG_PAD_IDX).nonzero()
+                        non_pad_preds = preds[non_pad_elements].squeeze(dim=-1)
+                        non_pad_targets = tag_sample[non_pad_elements].squeeze(dim=-1)
+                        test_y_pred.extend([self.TAGS.vocab.itos[a] for a in non_pad_preds])
+                        test_y_true.extend([self.TAGS.vocab.itos[a] for a in non_pad_targets])
+                        ee.update()
 
+            for batch in self.train_set:
+                text = batch.sentence.permute(1,0)
+                tags = batch.tags.permute(1,0)
+                with torch.no_grad():
+                    for text_sample, tag_sample in zip(text, tags):
+                        self.model.eval()
+                        train_count += 1
+                        out = self.model.forward(text_sample[None,:])
+                        preds = torch.argmax(out, dim=-1).squeeze(dim=0)
+                        loss = self.criterion(out.permute(0,2,1).float(), tag_sample[None, :].long())
 
-    def load_best_model(self, save_name = "lstm_model.pt"):
-        self.model.load_state_dict(torch.load(save_name))
-        test_loss, test_acc = eval_step()
-        print(f'Test Loss: {test_loss:.3f} |  Test Acc: {test_acc*100:.2f}%')
+                        train_loss += loss.item()
+                        non_pad_elements = (tag_sample != self.TAG_PAD_IDX).nonzero()
+                        non_pad_preds = preds[non_pad_elements].squeeze(dim=-1)
+                        non_pad_targets = tag_sample[non_pad_elements].squeeze(dim=-1)
+                        train_y_pred.extend([self.TAGS.vocab.itos[a] for a in non_pad_preds])
+                        train_y_true.extend([self.TAGS.vocab.itos[a] for a in non_pad_targets])
+                        ee.update()
 
+        train_loss = train_loss / train_count
+        eval_loss = eval_loss / eval_count
 
-    def predict(self,sentence):
-        self.model.eval()
-        if isinstance(sentence, str):
-            nlp = spacy.load("en_core_web_sm")
-            tokens = [token.text for token in nlp(sentence)]
-        else:
-            tokens = [token for token in sentence]
+        test_preds_oh, test_gt_oh = metrics.tag2onehot(test_y_pred, test_y_true, self.TAGS.vocab.itos)
+        train_preds_oh, train_gt_oh = metrics.tag2onehot(train_y_pred, train_y_true, self.TAGS.vocab.itos)
 
-        if self.TEXT.lower:
-            tokens = [t.lower() for t in tokens]
+        results = {}
+        results["TEST"] = metrics.metric_results(
+            test_gt_oh,
+            test_preds_oh,
+            self._metrics,
+            self.result_type,
+            self.TAGS.vocab.itos
+        )
 
-        numericalized_tokens = [self.TEXT.vocab.stoi[t] for t in tokens]
-        unk_idx = self.TEXT.vocab.stoi[self.TEXT.unk_token]
-        unks = [t for t, n in zip(tokens, numericalized_tokens) if n == unk_idx]
-        token_tensor = torch.LongTensor(numericalized_tokens)
-        token_tensor = token_tensor.unsqueeze(-1).to(self.device)
-        predictions = self.model(token_tensor)
-        top_predictions = predictions.argmax(-1)
-        predicted_tags = [self.TAGS.vocab.itos[t.item()] for t in top_predictions]
+        results["TRAIN"] = metrics.metric_results(
+            train_gt_oh,
+            train_preds_oh,
+            self._metrics,
+            self.result_type,
+            self.TAGS.vocab.itos
+        )
 
-        return tokens, predicted_tags, unks
+        results["TEST LOSS"] = eval_loss
+        results["TRAIN LOSS"] = train_loss
+        return results
+
+    
