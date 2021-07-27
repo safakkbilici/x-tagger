@@ -67,11 +67,13 @@ class LSTMForTagging(object):
         self.optimizer = optim.Adam(self.model.parameters())
 
 
-    def fit(self, train_set, test_set, epochs=10, save_name = "lstm_model.pt", eval_metrics = ["acc"], result_type = "%", checkpointing = None):
+    def fit(self, train_set, test_set, TEXT, TAGS, epochs=10, save_name = "lstm_model.pt", eval_metrics = ["acc"], result_type = "%", checkpointing = None):
         self.train_set = train_set
         self.test_set = test_set
         self._metrics = eval_metrics
         self.result_type = result_type
+        self.TAGS = TAGS
+        self.TEXT = TEXT
 
         metrics.check_eval_metrics(self._metrics)
 
