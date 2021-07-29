@@ -2,7 +2,9 @@
 ## Table of Contents  
 - [1 x-tagger Dataset](#dataset)  
 	- [1.1. A Default x-tagger Dataset](#nltk)
-	- [1.1. x-tagger Dataset to```pandas.DataFrame```](#x2p)
+	- [1.2. x-tagger Dataset to ```pandas.DataFrame```](#x2p)
+	- [1.3. ```pandas.DataFrame``` to x-tagger Dataset](#p2x)
+	- [1.4. x-tagger Dataset to ```torchtext``` Iterator](#x2t)
 
 <a name="dataset"/>
 
@@ -72,22 +74,8 @@ from xtagger import xtagger_dataset_to_df
 nltk_data = list(nltk.corpus.treebank.tagged_sents(tagset='universal'))
 train_set,test_set =train_test_split(nltk_data,train_size=0.8,test_size=0.2,random_state = 2112)
 
-df_train = xtagger_dataset_to_df(train_set)
-df_test = xtagger_dataset_to_df(test_set)
-```
-
-columns ```sentence``` and ```tags``` has form of string:
-
-| sentences                       | tags        |
-|---------------------------------|-------------|
-| This phrase once again                | DET NOUN ADV ADV           |
-| their employees help themselves       | PRON NOUN VERB PRON    |
-
-if you want to get them as a list:
-
-```python3
-df_train = xtagger_dataset_to_df(train_set, row_as_list=True)
-df_test = xtagger_dataset_to_df(test_set, row_as_list=True)
+df_train = xtagger_dataset_to_df(train_set, row_as_list = True)
+df_test = xtagger_dataset_to_df(test_set, row_as_list = False)
 ```
 
 | sentences                       | tags        |
@@ -95,9 +83,28 @@ df_test = xtagger_dataset_to_df(test_set, row_as_list=True)
 | ["This", "phrase", "once", "again"]                | ["DET", "NOUN", "ADV", "ADV"]           |
 | ["their", "employees", "help", "themselves"]       | ["PRON", "NOUN", "VERB", "PRON"]    |
 
+<a name="p2x"/>
+
+### x-tagger Dataset to ```pandas.DataFrame```
+
+```xtagger.df_to_xtagger_dataset(df)```
+- ```df```: pandas DataFrame with rows "sentence" and "tags".
+
+<a name="x2t"/>
+
 ### x-tagger Dataset to ```torchtext.data.BucketIterator```
 
-Most easiest way to train pytorch models comes from torchtext. You can train any token classification model that support torchtext, by converting the simples dataset x-tagger to torchtext dataset:
+Most easiest way to train pytorch models comes from torchtext. You can train any token classification model that support torchtext, by converting the simples dataset x-tagger to torchtext dataset. The procedure has 2 step. First you need to transfer x-tagger dataset to ```pandas.DataFrame```. Then you can transfer ```pandas.DataFrame``` to ```torchtext.data.BucketIterator```.
+
+```xtagger.df_to_torchtext_data(df_train, df_test, device, batch_size, pretrained_embeddings = False)```
+- ```df_train```: pandas DataFrame with ```row_as_list = True```.
+- ```df_test```: pandas DataFrame with ```row_as_list = True```.
+- ```device```: Hardware variable ```torch.device```.
+- ```batch_size```: Batch size for both df_train and df_test.
+- ```pretrained_embeddings```: Default glove.6B.100d embeddings (not tested).
+	* returns: three ```torchtext.data.iterator.BucketIterator``` for train, test, val and 2 ```torchtext.data.field.Field``` for TEXT and TAG.
+
+Example:
 
 ```python
 import nltk
@@ -115,7 +122,12 @@ df_test = xtagger_dataset_to_df(test_set)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-train_iterator, valid_iterator, test_iterator, TEXT, TAGS = df_to_torchtext_data(df_train, df_test, device, batch_size=32)
+train_iterator, valid_iterator, test_iterator, TEXT, TAGS = df_to_torchtext_data(
+	df_train, 
+	df_test, 
+	device, 
+	batch_size=32
+)
 ```
 
 train, test and validation variables are ```torchtext.data.iterator.BucketIterator``` and TEXT, TAGS variables are ```torchtext.data.field.Field```
