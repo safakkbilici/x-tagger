@@ -8,7 +8,7 @@
 	- [1.5 x-tagger Dataset to 🤗 datasets](#x2hf)
 - [2. Models](#models)
 	- [2.1. ```xtagger.HiddenMarkovModel```](#hmm)
-	- [2.2. ```xtagger.LSTMForTagging```][#lstm]
+	- [2.2. ```xtagger.LSTMForTagging```](#lstm)
 
 <a name="dataset"/>
 
@@ -190,7 +190,8 @@ _Note_: Evaluation takes much more time than fitting. This is because of complex
 
 <a name="lstm"/>
 
-### ```xtagger.HiddenMarkovModel(extend_to = "bigram", language="en", morphological = None, prior = None)```
+### ```xtagger.LSTMForTagging(input_dim, output_dim, TEXT, TAGS, embedding_dim=100, hidden_dim = 128, n_layers = 2, bidirectional=True, dropout=0.25, cuda=True, tag_pad_idx = None, pad_idx = None)```
+
 
 
 
