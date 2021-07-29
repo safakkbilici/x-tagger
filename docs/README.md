@@ -11,6 +11,7 @@
 	- [2.2. ```xtagger.LSTMForTagging```](#lstm)
 	- [2.3. ```xtagger.BERTForTagging```](#bert)
 - [3. Metrics](#metrics)
+	- [3.1. ```xtagger.utils.metrics.xMetrics```](#xmetrics)
 
 <a name="dataset"/>
 
@@ -244,6 +245,8 @@ Not tested yet :( Working on new release.
 ```
 
 Metrics that start with "avg" (f1, precision, recall) provides micro, macro and weighted calculations. Metric that start with "classwise" (f1, precision, recall) returns metrics classwise. For example f1 score of "ADV" tag. "report" metric prints beautiful ```sklearn.metrics.classification_report```. For LSTM and BERT, those metrics are calculated for both train set and eval set at training. ```model.evaluation``` returns for only test set. Each score provided with dictionary.
+
+<a name="xmetrics"/>
 
 ## ```xtagger.utils.metrics.xMetrics```
 
