@@ -6,6 +6,7 @@
 	- [1.3. ```pandas.DataFrame``` to x-tagger Dataset](#p2x)
 	- [1.4. x-tagger Dataset to ```torchtext``` Iterator](#x2t)
 	- [1.5 x-tagger Dataset to 🤗 datasets](#x2hf)
+- [2 Models](#models)
 
 <a name="dataset"/>
 
@@ -152,9 +153,11 @@ tokenizer = AutoTokenizer.from_pretrained("./path_to_tokenizer")
 dataset_train = df_to_hf_dataset(df_train, tags, tokenizer, device)
 dataset_test = df_to_hf_dataset(df_test, tags, tokenizer, device)
 ```
+<a name="models"/>
+
 ## Models
 
-x-tagger supports only Hidden Markov Model with its extensions (viterbi decoding, bigram, trigram, delete interpolation), Long Short-Term Memory with its extensions (unidirectional, bidirectional), BERT; for now.
+x-tagger support many algorithms! From Deep Learning to Computational Lingustics: x-tagger has LSTMs, BERTs and different types of Hidden Markov Models. Besides all, you can train any PyTorch model for pos tagging with x-tagger PyTorchTrainer wrapper! Before diving in those types and wrappers, we introduce basics of x-tagger models.
 
 ### Hidden Markov Models
 
