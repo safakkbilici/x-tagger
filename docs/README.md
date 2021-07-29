@@ -1,11 +1,11 @@
 # x-tagger Documentation
-##### Table of Contents  
-[Headers](#headers)  
+## Table of Contents  
+[1 x-tagger Dataset](#dataset)  
 [Emphasis](#emphasis)  
 ...snip...    
-<a name="headers"/>
-## Headers
 
+
+<a name="dataset"/>
 ## x-tagger Dataset
 
 x-tagger dataset is basically the most simples dataset for token classification.It is a list of sentences, and sentences is a list contains token/tag tuple pair:
