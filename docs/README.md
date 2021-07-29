@@ -64,8 +64,6 @@ now the ```nltk_data``` variable is in the form x-tagger dataset. In this docume
 <a name="x2p"/>
 
 ### ```xtagger.xtagger_dataset_to_df(dataset, row_as_list=False)```
-
-```xtagger.xtagger_dataset_to_df(dataset, row_as_list=False)```
 - ```in_channels```: x-tagger dataset.
 - ```row_as_list```: returns samples with list.
 
@@ -85,9 +83,7 @@ df_test = xtagger_dataset_to_df(test_set, row_as_list = False)
 
 <a name="p2x"/>
 
-### x-tagger Dataset to ```pandas.DataFrame```
-
-```xtagger.df_to_xtagger_dataset(df)```
+### ```xtagger.df_to_xtagger_dataset(df)```
 - ```df```: pandas DataFrame with rows "sentence" and "tags".
 
 <a name="x2t"/>
@@ -127,9 +123,7 @@ train_iterator, valid_iterator, test_iterator, TEXT, TAGS = df_to_torchtext_data
 
 <a name="x2hf"/>
 
-### x-tagger Dataset to 🤗 datasets
-
-```xtagger.df_to_hf_dataset(df, tags, tokenizer, device)```
+### ```xtagger.df_to_hf_dataset(df, tags, tokenizer, device)```
 - ```df```: pandas DataFrame with ```row_as_list = True```.
 - ```tags```: A list of tags in dataset.
 - ```tokenizer```: An object of ```transformers.AutoTokenizer```.
@@ -163,8 +157,7 @@ x-tagger support many algorithms! From Deep Learning to Computational Lingustics
 
 <a name="hmm"/>
 
-### Hidden Markov Models
-```xtagger.HiddenMarkovModel(extend_to = "bigram", language="en", morphological = None, prior = None)```
+### ```xtagger.HiddenMarkovModel(extend_to = "bigram", language="en", morphological = None, prior = None)```
 - ```extend_to```: type of HiddenMarkovModel. Current implementations: \["bigram", "trigram", "deleted_interpolation\]
 - ```language```: Language of model. Not important but best practice to use.
 - ```morphological```: ```xtagger.[Language]RegexTagger``` object with ```mode = "morphological"``` parameter.
@@ -195,9 +188,11 @@ x-tagger support many algorithms! From Deep Learning to Computational Lingustics
 
 _Note_: Evaluation takes much more time than fitting. This is because of complexity of viterbi decoding. ```random_size``` can give convergent results when considering law of large numbers. As a result, complexity of trigram and deleted_interpolation is higher than bigram. We will release benchmarks of x-tagger.
 
-### Long Short-Term Memory
+<a name="lstm"/>
 
-```xtagger.HiddenMarkovModel(extend_to = "bigram", language="en", morphological = None, prior = None)```
+### ```xtagger.HiddenMarkovModel(extend_to = "bigram", language="en", morphological = None, prior = None)```
+
+
 
 ### BERT
                        
