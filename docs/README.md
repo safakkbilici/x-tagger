@@ -304,11 +304,48 @@ Handling unknown words or computation time of HMM can be stressful. ```xtagger.E
 - ```rules```: A list of rules that are given as tuple.
 - ```use_default```: Default RegEx matching:
 
-		(r'.*ing$', 'VERB'),
+		[(r'.*ing$', 'VERB'),
 		(r'.*ed$', 'VERB'),
 		(r'.*es$', 'VERB'),
 		(r'.*\'s$', 'NOUN'),
 		(r'.*s$', 'NOUN'),
 		(r'\*T?\*?-[0-9]+$', 'X'),
 		(r'^-?[0-9]+(.[0-9]+)?$', 'NUM'),
-		(r'.*', 'NOUN')
+		(r'.*', 'NOUN')]
+- ```mode```: "prior" or "morphological".
+
+_Example_:
+
+```python
+from xtagger import EnglishRegExTagger
+from xtagger import HiddenMarkovModel
+
+rules = [
+    (r'.*ing$', 'VERB'),
+    (r'.*ed$',  'VERB'),
+    (r'.*es$',  'VERB')
+]
+
+morphological_tagger = EnglishRegExTagger(
+    rules = rules,
+    use_default = False,
+    mode = "morphological"
+)
+
+model = HiddenMarkovModel(
+    extend_to = "bigram",
+    language = "en",
+    morphological = morphological_tagger
+)
+
+model.fit(train_set)
+
+model.evaluate(
+    test_set,
+    random_size = -1,
+    seed = 15,
+    eval_metrics = ['acc', 'avg_f1'],
+    result_type = "%",
+    morphological = True,
+)
+```
