@@ -303,11 +303,12 @@ Handling unknown words or computation time of HMM can be stressful. ```xtagger.E
 
 - ```rules```: A list of rules that are given as tuple.
 - ```use_default```: Default RegEx matching:
-	- (r'.\*ing\$', 'VERB'),
-        - (r'.\*ed\$', 'VERB'),
-        - (r'.\*es\$', 'VERB'),
-        - (r'.\*\'s\$', 'NOUN'),
-        - (r'.\*s\$', 'NOUN'),
-        - (r'\\*T?\\*?-\[0-9\]+\$', 'X'),
-        - (r'^-?\[0-9\]+(.\[0-9\]+)?$', 'NUM'),
-        - (r'.\*', 'NOUN')- 
+
+		(r'.*ing$', 'VERB'),
+		(r'.*ed$', 'VERB'),
+		(r'.*es$', 'VERB'),
+		(r'.*\'s$', 'NOUN'),
+		(r'.*s$', 'NOUN'),
+		(r'\*T?\*?-[0-9]+$', 'X'),
+		(r'^-?[0-9]+(.[0-9]+)?$', 'NUM'),
+		(r'.*', 'NOUN')
