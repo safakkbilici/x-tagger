@@ -2,6 +2,7 @@
 ## Table of Contents  
 - [1 x-tagger Dataset](#dataset)  
 	- [1.1. A Default x-tagger Dataset](#nltk)
+	- [1.1. x-tagger Dataset to```pandas.DataFrame```](#x2p)
 
 <a name="dataset"/>
 
@@ -52,9 +53,15 @@ print(nltk_data)
 ```
 now the ```nltk_data``` variable is in the form x-tagger dataset.
 
+<a name="x2p"/>
+
 ### x-tagger Dataset To ```pandas.DataFrame```
 
-You can easily convert x-tagger dataset into ```pandas.DataFrame```, that has columns of ```["sentence", "tags"]```:
+```xtagger.xtagger_dataset_to_df(dataset, row_as_list=False)```
+- ```in_channels```: x-tagger dataset.
+- ```row_as_list```: returns samples with list.
+
+Example:
 
 ```python
 import nltk
