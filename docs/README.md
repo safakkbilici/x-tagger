@@ -227,12 +227,68 @@ _Note_: Evaluation takes much more time than fitting. This is because of complex
                        
 Not tested yet :( Working on new release.
 
+<a name="metrics"/>
 
 ## ```xtagger.utils.metrics```
+```xtagger.utils.metrics``` is a module that is hidden from the user. It provides metrics to user at training and evaluation. There is 8 built-in metric you can choose for ```eval_metric``` parameter of fit and initialization methods:
 
+```
+- avg_f1
+- avg_precision
+- avg_recall
+- acc
+- classwise_f1
+- classwise_precision
+- classwise_recall
+- report
+```
 
-                      
+Metrics that start with "avg" (f1, precision, recall) provides micro, macro and weighted calculations. Metric that start with "classwise" (f1, precision, recall) returns metrics classwise. For example f1 score of "ADV" tag. "report" metric prints beautiful ```sklearn.metrics.classification_report```. For LSTM and BERT, those metrics are calculated for both train set and eval set at training. ```model.evaluation``` returns for only test set. Each score provided with dictionary.
 
+## ```xtagger.utils.metrics.xMetrics```
 
+User might want to calculate specific metric for the task. ```xtagger.utils.metrics.xMetrics``` handles it.
 
+- ```y_true```: Suppose it as one-hot representation of each class.
+- ```y_pred```: Suppose it as one-hot representation of each class.
+- ```tags```: Not necessary but can be useful for beautiful printing.
+
+_Example_: From scratch accuracy for HMM.
+
+```python
+from xtagger import xMetrics
+
+class MyAcc(xMetrics):
+    def __init__(self, y_true, y_pred, tags):
+        super(MyAcc, self).__init__(y_true, y_pred, tags)
+        
+    def __call__(self):
+        import numpy as np
+        acc = 0
+        for gt, pred in zip(self.y_true, self.y_pred):
+            gt_index   = np.where(gt == 1)[0].item()
+            pred_index = np.where(pred == 1)[0].item()
+            
+            if gt_index == pred_index:
+                acc += 1
+                
+        return acc / self.y_true.shape[0]
+	
+model = HiddenMarkovModel(
+    extend_to = "bigram",
+    language = "en"
+)
+
+model.fit(train_set)
+
+model.evaluate(
+    test_set,
+    random_size = -1,
+    seed = 15,
+    eval_metrics = ['acc', 'avg_f1', MyAcc],
+    result_type = "%",
+    morphological = True,
+    prior = True
+)
+```
 
