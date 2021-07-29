@@ -90,10 +90,10 @@ class LSTMForTagging(object):
         self.test_set = test_set
         self._metrics = eval_metrics
         self.result_type = result_type
-
+        
         metrics.check_eval_metrics(self._metrics)
 
-        if checkpointing != None:
+        if checkpointing != None and checkpointing.save_best == True:
             callbacks.check_monitor_eval_metrics(checkpointing.monitor, eval_metrics)
 
         total = len(train_set) * epochs
