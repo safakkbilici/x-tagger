@@ -16,14 +16,17 @@ class LSTMForTagging(object):
     def __init__(self,
                  input_dim,
                  output_dim,
-                 pad_idx,
-                 tag_pad_idx,
+                 TEXT,
+                 TAGS,
                  embedding_dim=100,
                  hidden_dim=128,
                  n_layers = 2,
                  bidirectional=True,
                  dropout=0.25,
-                 cuda=True
+                 cuda=True,
+                 tag_pad_idx = None,
+                 pad_idx = None,
+                 
     ):
 
 
@@ -34,8 +37,17 @@ class LSTMForTagging(object):
         self.n_layers = n_layers
         self.bidirectional = bidirectional
         self.dropout = dropout
-        self.pad_idx = pad_idx
-        self.TAG_PAD_IDX = tag_pad_idx
+        self.TEXT = TEXT
+        self.TAGS = TAGS
+        
+        if tag_pad_idx == None:
+            self.TAG_PAD_IDX = self.TAGS.vocab.stoi[self.TAGS.pad_token]
+        else:
+            self.TAG_PAD_IDX = tag_pad_idx
+        if pad_idx == None:
+            self.TEXT_PAD_IDX = self.TEXT.vocab.stoi[self.TEXT.pad_token]
+        else:
+            self.TEXT_PAD_IDX = text_pad_idx
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         if cuda and self.device.type=="cpu":
@@ -52,10 +64,16 @@ class LSTMForTagging(object):
         return sum(p.numel() for p in self.model.parameters() if p.requires_grad)
 
     def build_model(self):
-        self.model = LSTM(self.input_dim, self.embedding_dim,
-                          self.hidden_dim, self.output_dim,
-                          self.n_layers, self.bidirectional,
-                          self.dropout, self.pad_idx)
+        self.model = LSTM(
+            self.input_dim,
+            self.embedding_dim,
+            self.hidden_dim,
+            self.output_dim,
+            self.n_layers,
+            self.bidirectional,
+            self.dropout,
+            self.TEXT_PAD_IDX
+        )
 
         self.model.apply(self.init_weigths)
         self.model = self.model.to(self.device)
@@ -67,13 +85,11 @@ class LSTMForTagging(object):
         self.optimizer = optim.Adam(self.model.parameters())
 
 
-    def fit(self, train_set, test_set, TEXT, TAGS, epochs=10, save_name = "lstm_model.pt", eval_metrics = ["acc"], result_type = "%", checkpointing = None):
+    def fit(self, train_set, test_set, epochs=10, save_name = "lstm_model.pt", eval_metrics = ["acc"], result_type = "%", checkpointing = None):
         self.train_set = train_set
         self.test_set = test_set
         self._metrics = eval_metrics
         self.result_type = result_type
-        self.TAGS = TAGS
-        self.TEXT = TEXT
 
         metrics.check_eval_metrics(self._metrics)
 
@@ -109,31 +125,31 @@ class LSTMForTagging(object):
         test_y_pred = []
         test_y_true = []
         
-        total = len(test_set) * test_set.batch_size
+        total = len(test_set)
         with tqdm(total = total) as ee:
             for batch in test_set:
                 text = batch.sentence.permute(1,0)
                 tags = batch.tags.permute(1,0)
                 with torch.no_grad():
-                    for text_sample, tag_sample in zip(text, tags):
-                        self.model.eval()
-                        out = self.model.forward(text_sample[None,:])
-                        preds = torch.argmax(out, dim=-1).squeeze(dim=0)
+                    self.model.eval()
+                    out = self.model.forward(text)
+                    preds = torch.argmax(out, dim=-1).squeeze(dim=0).flatten()
 
-                        non_pad_elements = (tag_sample != self.TAG_PAD_IDX).nonzero()
-                        non_pad_preds = preds[non_pad_elements].squeeze(dim=-1)
-                        non_pad_targets = tag_sample[non_pad_elements].squeeze(dim=-1)
-                        test_y_pred.extend([self.TAGS.vocab.itos[a] for a in non_pad_preds])
-                        test_y_true.extend([self.TAGS.vocab.itos[a] for a in non_pad_targets])
-                        ee.update()
+                    tag_sample = tags.contiguous().view(-1)
+                    non_pad_elements = (tag_sample != self.TAG_PAD_IDX).nonzero()
+                    non_pad_preds = preds[non_pad_elements].squeeze(dim=-1)
+                    non_pad_targets = tag_sample[non_pad_elements].squeeze(dim=-1)
+                    test_y_pred.extend([self.TAGS.vocab.itos[a] for a in non_pad_preds])
+                    test_y_true.extend([self.TAGS.vocab.itos[a] for a in non_pad_targets])
+                    ee.update()
                      
                      
         test_preds_oh, test_gt_oh = metrics.tag2onehot(test_y_pred, test_y_true, self.TAGS.vocab.itos)
         results = metrics.metric_results(
             test_gt_oh,
             test_preds_oh,
-            self._metrics,
-            self.result_type,
+            eval_metrics,
+            result_type,
             self.TAGS.vocab.itos
         )
 
@@ -141,7 +157,7 @@ class LSTMForTagging(object):
             
         
     def _eval(self):
-        total = len(self.train_set) * self.train_set.batch_size + len(self.test_set) * self.test_set.batch_size
+        total = len(self.train_set) + len(self.test_set)
         eval_loss, eval_count = 0, 0
         train_loss, train_count = 0, 0
 
@@ -156,39 +172,44 @@ class LSTMForTagging(object):
                 text = batch.sentence.permute(1,0)
                 tags = batch.tags.permute(1,0)
                 with torch.no_grad():
-                    for text_sample, tag_sample in zip(text, tags):
-                        self.model.eval()
-                        eval_count += 1
-                        out = self.model.forward(text_sample[None,:])
-                        preds = torch.argmax(out, dim=-1).squeeze(dim=0)
-                        loss = self.criterion(out.permute(0,2,1).float(), tag_sample[None, :].long())
-
-                        eval_loss += loss.item()
-                        non_pad_elements = (tag_sample != self.TAG_PAD_IDX).nonzero()
-                        non_pad_preds = preds[non_pad_elements].squeeze(dim=-1)
-                        non_pad_targets = tag_sample[non_pad_elements].squeeze(dim=-1)
-                        test_y_pred.extend([self.TAGS.vocab.itos[a] for a in non_pad_preds])
-                        test_y_true.extend([self.TAGS.vocab.itos[a] for a in non_pad_targets])
-                        ee.update()
+                    #for text_sample, tag_sample in zip(text, tags):
+                    self.model.eval()
+                    eval_count += 1
+                    #out = self.model.forward(text[None,:])
+                    out = self.model.forward(text)
+                    preds = torch.argmax(out, dim=-1).squeeze(dim=0).flatten()
+                    loss = self.criterion(out.permute(0,2,1).float(), tags.long()) #tags[None, :]
+                    
+                    eval_loss += loss.item()
+                    #non_pad_elements = (tag_sample != self.TAG_PAD_IDX).nonzero()
+                    tag_sample = tags.contiguous().view(-1)
+                    non_pad_elements = (tag_sample != self.TAG_PAD_IDX).nonzero()
+                    non_pad_preds = preds[non_pad_elements].squeeze(dim=-1)
+                    non_pad_targets = tag_sample[non_pad_elements].squeeze(dim=-1)
+                    test_y_pred.extend([self.TAGS.vocab.itos[a] for a in non_pad_preds])
+                    test_y_true.extend([self.TAGS.vocab.itos[a] for a in non_pad_targets])
+                    ee.update()
 
             for batch in self.train_set:
                 text = batch.sentence.permute(1,0)
                 tags = batch.tags.permute(1,0)
                 with torch.no_grad():
-                    for text_sample, tag_sample in zip(text, tags):
-                        self.model.eval()
-                        train_count += 1
-                        out = self.model.forward(text_sample[None,:])
-                        preds = torch.argmax(out, dim=-1).squeeze(dim=0)
-                        loss = self.criterion(out.permute(0,2,1).float(), tag_sample[None, :].long())
+                    #for text_sample, tag_sample in zip(text, tags):
+                    self.model.eval()
+                    train_count += 1
+                    #out = self.model.forward(text[None,:])
+                    out = self.model.forward(text)
+                    preds = torch.argmax(out, dim=-1).squeeze(dim=0).flatten()
+                    loss = self.criterion(out.permute(0,2,1).float(), tags.long()) #tags[None, :]
 
-                        train_loss += loss.item()
-                        non_pad_elements = (tag_sample != self.TAG_PAD_IDX).nonzero()
-                        non_pad_preds = preds[non_pad_elements].squeeze(dim=-1)
-                        non_pad_targets = tag_sample[non_pad_elements].squeeze(dim=-1)
-                        train_y_pred.extend([self.TAGS.vocab.itos[a] for a in non_pad_preds])
-                        train_y_true.extend([self.TAGS.vocab.itos[a] for a in non_pad_targets])
-                        ee.update()
+                    train_loss += loss.item()
+                    tag_sample = tags.contiguous().view(-1)
+                    non_pad_elements = (tag_sample != self.TAG_PAD_IDX).nonzero()
+                    non_pad_preds = preds[non_pad_elements].squeeze(dim=-1)
+                    non_pad_targets = tag_sample[non_pad_elements].squeeze(dim=-1)
+                    train_y_pred.extend([self.TAGS.vocab.itos[a] for a in non_pad_preds])
+                    train_y_true.extend([self.TAGS.vocab.itos[a] for a in non_pad_targets])
+                    ee.update()
 
         train_loss = train_loss / train_count
         eval_loss = eval_loss / eval_count
