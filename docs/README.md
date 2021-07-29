@@ -10,6 +10,7 @@
 	- [2.1. ```xtagger.HiddenMarkovModel```](#hmm)
 	- [2.2. ```xtagger.LSTMForTagging```](#lstm)
 	- [2.3. ```xtagger.BERTForTagging```](#bert)
+- [3. Metrics](#metrics)
 
 <a name="dataset"/>
 
@@ -225,6 +226,9 @@ _Note_: Evaluation takes much more time than fitting. This is because of complex
 ### BERT
                        
 Not tested yet :( Working on new release.
+
+
+## ```xtagger.utils.metrics```
 
 
                       
