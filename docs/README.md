@@ -1,12 +1,13 @@
 # x-tagger Documentation
 ## Table of Contents  
-- [1 x-tagger Dataset](#dataset)  
+- [1. x-tagger Dataset](#dataset)  
 	- [1.1. A Default x-tagger Dataset](#nltk)
 	- [1.2. x-tagger Dataset to ```pandas.DataFrame```](#x2p)
 	- [1.3. ```pandas.DataFrame``` to x-tagger Dataset](#p2x)
 	- [1.4. x-tagger Dataset to ```torchtext``` Iterator](#x2t)
 	- [1.5 x-tagger Dataset to 🤗 datasets](#x2hf)
-- [2 Models](#models)
+- [2. Models](#models)
+	- [2.1. ```xtagger.HiddenMarkovModel```](#hmm)
 
 <a name="dataset"/>
 
@@ -159,7 +160,28 @@ dataset_test = df_to_hf_dataset(df_test, tags, tokenizer, device)
 
 x-tagger support many algorithms! From Deep Learning to Computational Lingustics: x-tagger has LSTMs, BERTs and different types of Hidden Markov Models. Besides all, you can train any PyTorch model for pos tagging with x-tagger PyTorchTrainer wrapper! Before diving in those types and wrappers, we introduce basics of x-tagger models.
 
+<a name="hmm"/>
 ### Hidden Markov Models
+```xtagger.HiddenMarkovModel(extend_to = "bigram", language="en", morphological = None, prior = None)```
+- ```extend_to```: type of HiddenMarkovModel. Current implementations: \["bigram", "trigram", "deleted_interpolation\]
+- ```language```: Language of model. Not important but best practice to use.
+- ```morphological```: ```xtagger.\[Language\]RegexTagger``` object with ```mode = "morphological"``` parameter.
+- ```prior```: ```xtagger.\[Language\]RegexTagger``` object with ```mode = "prior"``` parameter.
+	* ```HiddenMarkovModel.fit(train_set, start_token = ".")```
+		* ```train_set```: x-tagger Dataset for training.
+		* ```start_token```: Start token in your training tags.
+	* ```HiddenMarkovModel.evaluate(test_set, random_size = 30, seed = None, eval_metrics=["acc"], result_type = "%", morphological = True, prior = True)```
+		*  ```test_set```: x-tagger Dataset for evaluating.
+		*  ```random_size```: Select random samples in evaluation for efficiency.
+		*  ```seed```: Random seed.
+		*  ```eval_metrics```: Evaluation metrics. See more for ```xtagger.utils.metrics``` section.
+		*  ```morphological```: For using initialized ```xtagger.\[Language\]RegexTagger```. Flexibility comes from passing it at initialiation but not using with ```morphological = False```.
+		*  ```prior```: For using initialized ```xtagger.\[Language\]RegexTagger```. Flexibility comes from passing it at initialiation but not using with ```prior = False```.
+	* ```HiddenMarkovModel.predict(words, morphological = False, prior = False)```
+		* ```words```: List of words for your sentence.
+		* ```morphological```: For using initialized ```xtagger.\[Language\]RegexTagger```.
+		* ```prior```: For using initialized ```xtagger.\[Language\]RegexTagger```.
+
 
 You can train your **bigram** Hidden Markov Model:
 
