@@ -14,7 +14,7 @@
 	- [3.1. ```xtagger.utils.metrics.xMetrics```](#xmetrics)
 - [4. ```xtagger.EnglishRegExTagger```](#regex) 
 - [5. PyTorch Sequence Labeling Wrapper](#wrapper)
-
+- [6. ```xtagger.Checkpointing```](#ckpts)
 <a name="dataset"/>
 
 ## x-tagger Dataset
@@ -372,3 +372,27 @@ User might want to develop a novel pos-tagging model and train. ```xtagger.PyTor
 	- ```PyTorchTrainer.train(epochs = 10)```
 		- ```epochs```: Number of epochs for training.
 		- This method computes metrics for both train and val as well as other ```.fit()``` methods.
+
+
+<a name="ckpts"/>
+
+## ```xtagger.Checkpointing(model_path, model_name, monitor = None, mode = "maximize", save_best = True, verbose = 0)```
+- ```model_path```: Path to save checkpoints.
+- ```model_name```: Checkpoint file name. Should be end with ".pt".
+- ```monitor```: Monitoring metric for saving best model. Must be one of from
+
+		- train_loss
+		- train_acc
+		- train_avg_f1
+		- train_avg_precision
+		- train_avg_recall
+		- eval_loss
+		- eval_acc
+		- eval_avg_f1
+		- eval_avg_precision
+		- eval_avg_recall
+- ```mode```: Maximize of minimize that metric.
+- ```save_best```: If false, then saves model at each epoch.
+- ```verbose```: If true, prints best model monitor metric score.
+	- ```Checkpointing.load(model)```
+		- ```model```: PyTorch model.
