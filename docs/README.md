@@ -161,6 +161,7 @@ dataset_test = df_to_hf_dataset(df_test, tags, tokenizer, device)
 x-tagger support many algorithms! From Deep Learning to Computational Lingustics: x-tagger has LSTMs, BERTs and different types of Hidden Markov Models. Besides all, you can train any PyTorch model for pos tagging with x-tagger PyTorchTrainer wrapper! Before diving in those types and wrappers, we introduce basics of x-tagger models.
 
 <a name="hmm"/>
+
 ### Hidden Markov Models
 ```xtagger.HiddenMarkovModel(extend_to = "bigram", language="en", morphological = None, prior = None)```
 - ```extend_to```: type of HiddenMarkovModel. Current implementations: \["bigram", "trigram", "deleted_interpolation\]
