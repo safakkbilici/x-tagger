@@ -13,7 +13,7 @@
 - [3. Metrics](#metrics)
 	- [3.1. ```xtagger.utils.metrics.xMetrics```](#xmetrics)
 - [4. ```xtagger.EnglishRegExTagger```](#regex) 
-- [5. PyTorch Sequence Labeling Wrapper]
+- [5. PyTorch Sequence Labeling Wrapper](#wrapper)
 
 <a name="dataset"/>
 
@@ -351,7 +351,7 @@ model.evaluate(
 )
 ```
 
-<a name="regex"/>
+<a name="wrapper"/>
 
 ## Wrapper
 
