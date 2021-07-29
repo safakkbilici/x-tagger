@@ -169,7 +169,8 @@ x-tagger support many algorithms! From Deep Learning to Computational Lingustics
 		*  ```test_set```: x-tagger Dataset for evaluating.
 		*  ```random_size```: Select random samples in evaluation for efficiency.
 		*  ```seed```: Random seed.
-		*  ```eval_metrics```: Evaluation metrics. See more for ```xtagger.utils.metrics``` section.
+		*  ```eval_metrics```: Evaluation metrics. See more at ```xtagger.utils.metrics``` section.
+		*  ```result_type```: For percentage "%", else decimal number.
 		*  ```morphological```: For using initialized ```xtagger.[Language]RegexTagger```. Flexibility comes from passing it at initialiation but not using with ```morphological = False```.
 		*  ```prior```: For using initialized ```xtagger.[Language]RegexTagger```. Flexibility comes from passing it at initialiation but not using with ```prior = False```.
 	* ```HiddenMarkovModel.predict(words, morphological = False, prior = False)```
@@ -190,10 +191,33 @@ _Note_: Evaluation takes much more time than fitting. This is because of complex
 
 <a name="lstm"/>
 
-### ```xtagger.LSTMForTagging(input_dim, output_dim, TEXT, TAGS, embedding_dim=100, hidden_dim = 128, n_layers = 2, bidirectional=True, dropout=0.25, cuda=True, tag_pad_idx = None, pad_idx = None)```
-
-
-
+### ```xtagger.LSTMForTagging(input_dim, output_dim, TEXT, TAGS, embedding_dim = 100, hidden_dim = 128, n_layers = 2, bidirectional = True, dropout = 0.25, cuda = True, tag_pad_idx = None, pad_idx = None)```
+- ```input_dim```: Size of your vocab. Should be len(TEXT).
+- ```output_dim```: Number of tags + \<pad\> token. Should be len(TAGS).
+- ```TEXT```: Word vocabulary with ```torchtext.data.field.Field```.
+- ```TAGS```: Tag vocabulary with ```torchtext.data.field.Field```.
+- ```embedding_dim```: Embedding dimension of ```torch.nn.Embedding```.
+- ```hidden_dim```: Hidden dimension of ```torch.nn.LSTM```.
+- ```n_layers```: Number of layers of LSTM.
+- ```bidirectional```: True for bidirectional LSTM, else false.
+- ```dropout```: Dropout rate for fully connected network out.
+- ```cuda```: If you have cuda but not to use it.
+- ```tag_pad_idx```: Tag pad index. Should be ```TAGS.vocab.stoi[TAGS.pad_token]```.
+- ```pad_idx```: Text pad index. Should be ```TEXT.vocab.stoi[TEXT.pad_token]```.
+	* ```LSTMForTagging.fit(train_set, test_set, epochs = 10, eval_metrics = ["acc"], result_type = "%", checkpointing = None)```
+		* ```train_set```: Training dataset with ```torchtext.data.iterator.BucketIterator```.
+		* ```test_set```: Evaluation dataset ```torchtext.data.iterator.BucketIterator```.
+		* ```epochs```: Number of epochs for training.
+		* ```eval_metrics```: Evaluation metrics. See more for ```xtagger.utils.metrics``` section.
+		* ```result_type```: For percentage "%", else decimal number.
+		* ```checkpointing```: Checkpointing object. See more at ```xtagger.utils.callbacks.Checkpointing``` section.
+	* ```LSTMForTagging.evaluate(test_set = None, eval_metrics = ["acc"], result_type = "%")```
+		* ```test_set```: Test dataset ```torchtext.data.iterator.BucketIterator```. If None, uses ```test_set``` from initialization automatically.
+		* ```eval_metrics```: Evaluation metrics. See more for ```xtagger.utils.metrics``` section.
+		* ```result_type```: For percentage "%", else decimal number.
+	* ```LSTMForTagging.predict(sentence)```:
+		* ```sentence```: List of words or single string.
+		* returns zipped version of words and tags and unk words: ```zipped, unk = model.predict("hello world")```
 
 ### BERT
                        
