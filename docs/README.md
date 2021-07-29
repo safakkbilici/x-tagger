@@ -5,6 +5,7 @@
 	- [1.2. x-tagger Dataset to ```pandas.DataFrame```](#x2p)
 	- [1.3. ```pandas.DataFrame``` to x-tagger Dataset](#p2x)
 	- [1.4. x-tagger Dataset to ```torchtext``` Iterator](#x2t)
+	- [1.5 x-tagger Dataset to 🤗 datasets](#x2hf)
 
 <a name="dataset"/>
 
@@ -50,10 +51,12 @@ NLTK Penn Treebank is most used treebank for POS tagging:
 
 ```python
 import nltk
+from sklearn.model_selection import train_test_split
+
 nltk_data = list(nltk.corpus.treebank.tagged_sents(tagset='universal'))
-print(nltk_data)
+train_set, test_set = train_test_split(nltk_data,train_size=0.8,test_size=0.2,random_state = 2112)
 ```
-now the ```nltk_data``` variable is in the form x-tagger dataset.
+now the ```nltk_data``` variable is in the form x-tagger dataset. In this documentation, ```train_set``` and ```test_set``` variables refer here.
 
 <a name="x2p"/>
 
@@ -66,13 +69,7 @@ now the ```nltk_data``` variable is in the form x-tagger dataset.
 _Example_:
 
 ```python
-import nltk
-from sklearn.model_selection import train_test_split
-
 from xtagger import xtagger_dataset_to_df
-
-nltk_data = list(nltk.corpus.treebank.tagged_sents(tagset='universal'))
-train_set,test_set =train_test_split(nltk_data,train_size=0.8,test_size=0.2,random_state = 2112)
 
 df_train = xtagger_dataset_to_df(train_set, row_as_list = True)
 df_test = xtagger_dataset_to_df(test_set, row_as_list = False)
@@ -97,8 +94,8 @@ df_test = xtagger_dataset_to_df(test_set, row_as_list = False)
 Most easiest way to train pytorch models comes from torchtext. You can train any token classification model that support torchtext, by converting the simples dataset x-tagger to torchtext dataset. The procedure has 2 step. First you need to transfer x-tagger dataset to ```pandas.DataFrame```. Then you can transfer ```pandas.DataFrame``` to ```torchtext.data.BucketIterator```.
 
 ```xtagger.df_to_torchtext_data(df_train, df_test, device, batch_size, pretrained_embeddings = False)```
-- ```df_train```: pandas DataFrame with ```row_as_list = True```.
-- ```df_test```: pandas DataFrame with ```row_as_list = True```.
+- ```df_train```: pandas DataFrame with ```row_as_list = False```.
+- ```df_test```: pandas DataFrame with ```row_as_list = False```.
 - ```device```: Hardware variable ```torch.device```.
 - ```batch_size```: Batch size for both df_train and df_test.
 - ```pretrained_embeddings```: Default glove.6B.100d embeddings (not tested).
@@ -107,15 +104,9 @@ Most easiest way to train pytorch models comes from torchtext. You can train any
 _Example_:
 
 ```python
-import nltk
-from sklearn.model_selection import train_test_split
 import torch
-
 from xtagger import xtagger_dataset_to_df
 from xtagger import df_to_torchtext_data
-
-nltk_data = list(nltk.corpus.treebank.tagged_sents(tagset='universal'))
-train_set,test_set =train_test_split(nltk_data,train_size=0.8,test_size=0.2,random_state = 2112)
 
 df_train = xtagger_dataset_to_df(train_set)
 df_test = xtagger_dataset_to_df(test_set)
@@ -131,20 +122,22 @@ train_iterator, valid_iterator, test_iterator, TEXT, TAGS = df_to_torchtext_data
 ```
 
 
+<a name="x2hf"/>
+
 ### x-tagger Dataset to 🤗 datasets
 
-x-tagger uses 🤗 datasets for state-of-the-art models like BERT for token classification. So it is more effective to convert x-tagger dataset to 🤗 dataset format:
+```xtagger.df_to_hf_dataset(df, tags, tokenizer, device)```
+- ```df```: pandas DataFrame with ```row_as_list = True```.
+- ```tags```: A list of tags in dataset.
+- ```tokenizer```: An object of ```transformers.AutoTokenizer```.
+- ```device```: Hardware variable ```torch.device```.
+
+_Example_:
 
 ```python
-import nltk
-from sklearn.model_selection import train_test_split
 import torch
-
 from xtagger import xtagger_dataset_to_df
 from xtagger import df_to_hf_dataset
-
-nltk_data = list(nltk.corpus.treebank.tagged_sents(tagset='universal'))
-train_set,test_set =train_test_split(nltk_data,train_size=0.8,test_size=0.2,random_state = 2112)
 
 df_train = xtagger_dataset_to_df(train_set, row_as_list=True)
 df_test = xtagger_dataset_to_df(test_set, row_as_list=True)
@@ -155,7 +148,6 @@ tags = list(tags)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 tokenizer = AutoTokenizer.from_pretrained("./path_to_tokenizer")
-
 
 dataset_train = df_to_hf_dataset(df_train, tags, tokenizer, device)
 dataset_test = df_to_hf_dataset(df_test, tags, tokenizer, device)
@@ -169,9 +161,6 @@ x-tagger supports only Hidden Markov Model with its extensions (viterbi decoding
 You can train your **bigram** Hidden Markov Model:
 
 ```python
-import nltk
-from sklearn.model_selection import train_test_split
-
 from xtagger import HiddenMarkovModel
 
 nltk_data = list(nltk.corpus.treebank.tagged_sents(tagset='universal'))
