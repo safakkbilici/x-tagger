@@ -2,15 +2,16 @@ import torch.nn as nn
 from transformers import AutoModel
 
 class BERT(nn.Module):
-    def __init__(self, bert_name, output_dim, dropout):
+    def __init__(self, bert_name, output_dim, dropout, dont_stop_pretraining=False):
         super(BERT, self).__init__()
         self.bert_name = bert_name
 
         self.bert = AutoModel.from_pretrained(self.bert_name)
         embed_dim = self.bert.config.to_dict()["hidden_size"]
 
-        for param in self.bert.parameters():
-            param.requires_grad = False
+        if not dont_stop_pretraining:
+            for param in self.bert.parameters():
+                param.requires_grad = False
 
         self.fc_out = nn.Linear(embed_dim, output_dim)
         self.dropout = nn.Dropout(dropout)
