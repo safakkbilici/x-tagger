@@ -12,7 +12,8 @@
 	- [2.3. ```xtagger.BERTForTagging```](#bert)
 - [3. Metrics](#metrics)
 	- [3.1. ```xtagger.utils.metrics.xMetrics```](#xmetrics)
-- [4. ```xtagger.EnglishRegExTagger```](#regex)
+- [4. ```xtagger.EnglishRegExTagger```](#regex) 
+- [5. PyTorch Sequence Labeling Wrapper]
 
 <a name="dataset"/>
 
@@ -349,3 +350,25 @@ model.evaluate(
     morphological = True,
 )
 ```
+
+<a name="regex"/>
+
+## Wrapper
+
+User might want to develop a novel pos-tagging model and train. ```xtagger.PyTorchTrainer``` handles this.
+
+### ```xtagger.PyTorchTrainer(model, optimizer, criterion, train_iterator, val_iterator, TEXT, TAGS, device, eval_metrics = ["acc"], checkpointing = None, result_type = "%")```
+- ```model```: ```torch.nn.Module``` model with ```batch_first = True``` rule.
+- ```optimizer```: An object from ```torch.optim```.
+- ```criterion```: A loss function from ```torch.nn```
+- ```train_iterator```: Training dataset with ```torchtext.data.iterator.BucketIterator```.
+- ```val_iterator```: Evaluation dataset ```torchtext.data.iterator.BucketIterator```.
+- ```TEXT```: Word vocabulary with ```torchtext.data.field.Field```.
+- ```TAGS```: Tag vocabulary with ```torchtext.data.field.Field```.
+- ```device```: Hardware variable ```torch.device```.
+- ```eval_metrics```: Evaluation metrics. See more for ```xtagger.utils.metrics``` section.
+- ```checkpointing```: Checkpointing object. See more at ```xtagger.utils.callbacks.Checkpointing``` section.
+- ```result_type```: For percentage "%", else decimal number.
+	- ```PyTorchTrainer.train(epochs = 10)```
+		- ```epochs```: Number of epochs for training.
+		- This method computes metrics for both train and val as well as other ```.fit()``` methods.
