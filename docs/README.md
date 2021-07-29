@@ -12,6 +12,7 @@
 	- [2.3. ```xtagger.BERTForTagging```](#bert)
 - [3. Metrics](#metrics)
 	- [3.1. ```xtagger.utils.metrics.xMetrics```](#xmetrics)
+- [4. ```xtagger.EnglishRegExTagger```](#regex)
 
 <a name="dataset"/>
 
@@ -260,6 +261,7 @@ _Example_: From scratch accuracy for HMM.
 
 ```python
 from xtagger import xMetrics
+from xtagger import HiddenMarkovModel
 
 class MyAcc(xMetrics):
     def __init__(self, y_true, y_pred, tags):
@@ -289,9 +291,12 @@ model.evaluate(
     random_size = -1,
     seed = 15,
     eval_metrics = ['acc', 'avg_f1', MyAcc],
-    result_type = "%",
-    morphological = True,
-    prior = True
+    result_type = "%"
 )
 ```
 
+<a name="regex"/>
+
+## ```xtagger.EnglishRegExTagger```
+
+Handling unknown words or computation time of HMM can be stressful. ```xtagger.EnglishRegExTagger``` a helper module. With its morphological mode, it handles unknown words at evaluation which are not seen at train set. With that property, precision of the task increases. With its prior mode, it handles the computational complexity of decoding. If a prior regular expression rule matches with a word, HMM does not compute probability for that word, it assigns its RegEx tag. But, everything has a price. With a weak prior, you can encounter poor precision.
