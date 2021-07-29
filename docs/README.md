@@ -9,6 +9,7 @@
 - [2. Models](#models)
 	- [2.1. ```xtagger.HiddenMarkovModel```](#hmm)
 	- [2.2. ```xtagger.LSTMForTagging```](#lstm)
+	- [2.3. ```xtagger.BERTForTagging```](#bert)
 
 <a name="dataset"/>
 
@@ -218,6 +219,8 @@ _Note_: Evaluation takes much more time than fitting. This is because of complex
 	* ```LSTMForTagging.predict(sentence)```:
 		* ```sentence```: List of words or single string.
 		* returns zipped version of words and tags and unk words: ```zipped, unk = model.predict("hello world")```
+
+<a name="bert"/>
 
 ### BERT
                        
