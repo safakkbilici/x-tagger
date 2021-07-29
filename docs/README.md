@@ -8,6 +8,7 @@
 	- [1.5 x-tagger Dataset to 🤗 datasets](#x2hf)
 - [2. Models](#models)
 	- [2.1. ```xtagger.HiddenMarkovModel```](#hmm)
+	- [2.2. ```xtagger.LSTMForTagging```][#lstm]
 
 <a name="dataset"/>
 
@@ -62,7 +63,7 @@ now the ```nltk_data``` variable is in the form x-tagger dataset. In this docume
 
 <a name="x2p"/>
 
-### x-tagger Dataset To ```pandas.DataFrame```
+### ```xtagger.xtagger_dataset_to_df(dataset, row_as_list=False)```
 
 ```xtagger.xtagger_dataset_to_df(dataset, row_as_list=False)```
 - ```in_channels```: x-tagger dataset.
@@ -196,7 +197,7 @@ _Note_: Evaluation takes much more time than fitting. This is because of complex
 
 ### Long Short-Term Memory
 
-
+```xtagger.HiddenMarkovModel(extend_to = "bigram", language="en", morphological = None, prior = None)```
 
 ### BERT
                        
