@@ -182,96 +182,25 @@ x-tagger support many algorithms! From Deep Learning to Computational Lingustics
 		* ```words```: List of words for your sentence.
 		* ```morphological```: For using initialized ```xtagger.[Language]RegexTagger```.
 		* ```prior```: For using initialized ```xtagger.[Language]RegexTagger```.
+	* ```HiddenMarkovModel.set_test_set(test)```
+	* ```HiddenMarkovModel.get_tags(test)```
+	* ```HiddenMarkovModel.get_start_token(test)```
+	* ```HiddenMarkovModel.get_extension(test)```
+	* ```HiddenMarkovModel.get_transition_matrix(test)```
+	* ```HiddenMarkovModel.get_eval_metrics(test)```
+	* ```HiddenMarkovModel.get_metric_onehot_indexing(test)```
+	* ```HiddenMarkovModel.eval_indices(test)```
 
 
 _Note_: Evaluation takes much more time than fitting. This is because of complexity of viterbi decoding. ```random_size``` can give convergent results when considering law of large numbers. As a result, complexity of trigram and deleted_interpolation is higher than bigram. We will release benchmarks of x-tagger.
 
-### Long Short-Term Memory (LSTM)
-
-You can train your **unidirectional or bidirectional** Long Short-Term Memory:
-
-```python
-import nltk
-from sklearn.model_selection import train_test_split
-
-import torch
-from xtagger import LSTMForTagging
-from xtagger import xtagger_dataset_to_df, df_to_torchtext_data
+### Long Short-Term Memory
 
 
-nltk_data = list(nltk.corpus.treebank.tagged_sents(tagset='universal'))
-train_set,test_set =train_test_split(nltk_data,train_size=0.8,test_size=0.2)
-
-df_train = xtagger_dataset_to_df(train_set)
-df_test = xtagger_dataset_to_df(test_set)
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-train_iterator, valid_iterator, test_iterator, TEXT, TAGS = df_to_torchtext_data(df_train, df_test, device, batch_size=32)
-
-model = LSTMForTagging(TEXT, TAGS, cuda=True)
-
-model.fit(train_iterator, test_iterator)
-
-model.predict("hello world i am doing great")
-```
-
-you can easily change your LSTM model's hyperparameters at its constructor and ```.fit()``` method.
-
-```python
-model = LSTMForTagging(TEXT, TAGS,embedding_dim=100,
-		       hidden_dim=128, n_layers = 2,
-                       bidirectional=True, dropout=0.25, cuda=True)
-                    
-model.fit(epochs=10, save_name = "lstm_save_best.pt")
-model.load_best_model("lstm_save_best.pt")
-```
 
 ### BERT
                        
-For BERT, we use 🤗 transformers interface. You can train your BERT for token classification (using x-tagger dataset, as always):
-
-```python
-import nltk
-from sklearn.model_selection import train_test_split
-from transformers import AutoTokenizer
-
-import torch
-from xtagger import xtagger_dataset_to_df, df_to_hf_dataset
-from xtagger import BERTForTagging
-
-nltk_data = list(nltk.corpus.treebank.tagged_sents(tagset='universal'))
-train_set,test_set =train_test_split(nltk_data,train_size=0.8,test_size=0.2)
-
-df_train = xtagger_dataset_to_df(train_set, row_as_list=True)
-df_test = xtagger_dataset_to_df(test_set, row_as_list=True)
-
-train_tagged_words = [tup for sent in train_set for tup in sent]
-tags = {tag for word,tag in train_tagged_words}
-tags = list(tags)
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
-
-dataset_train = df_to_hf_dataset(df_train, tags, tokenizer, device)
-dataset_test = df_to_hf_dataset(df_test, tags, tokenizer, device)
-
-from xtagger import BERTForTagging
-model = BERTForTagging("bert-base-uncased", device, tags, tokenizer)
-
-model.fit(dataset_train, dataset_test)
-model.evaluate()
-
-preds, ids = model.predict('the next Charlie Parker would never be discouraged.')
-print(preds)
-````
-
-you can easily change your BERT model's hyperparameters at its constructor and ```.fit()``` method.
-
-```python
-model = BERTForTagging("bert-base-uncased", device, tags, tokenizer,
-      		       cuda=True, learning_rate = 2e-5, train_batch_size=4,
-		       eval_batch_size=4, epochs=3, weight_decay=0.1)
-```
+Not tested yet :( Working on new release.
 
 
                       
