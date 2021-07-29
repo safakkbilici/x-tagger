@@ -63,7 +63,7 @@ now the ```nltk_data``` variable is in the form x-tagger dataset.
 - ```in_channels```: x-tagger dataset.
 - ```row_as_list```: returns samples with list.
 
-Example:
+_Example_:
 
 ```python
 import nltk
@@ -102,9 +102,9 @@ Most easiest way to train pytorch models comes from torchtext. You can train any
 - ```device```: Hardware variable ```torch.device```.
 - ```batch_size```: Batch size for both df_train and df_test.
 - ```pretrained_embeddings```: Default glove.6B.100d embeddings (not tested).
-	* returns: three ```torchtext.data.iterator.BucketIterator``` for train, test, val and 2 ```torchtext.data.field.Field``` for TEXT and TAG.
+	* returns: three ```torchtext.data.iterator.BucketIterator``` for train, test, val and 2 ```torchtext.data.field.Field``` for TEXT and TAG vocabs.
 
-Example:
+_Example_:
 
 ```python
 import nltk
@@ -130,7 +130,6 @@ train_iterator, valid_iterator, test_iterator, TEXT, TAGS = df_to_torchtext_data
 )
 ```
 
-train, test and validation variables are ```torchtext.data.iterator.BucketIterator``` and TEXT, TAGS variables are ```torchtext.data.field.Field```
 
 ### x-tagger Dataset to 🤗 datasets
 
