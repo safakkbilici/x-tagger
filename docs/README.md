@@ -1,8 +1,7 @@
 # x-tagger Documentation
 ## Table of Contents  
-[1 x-tagger Dataset](#dataset)  
-[Emphasis](#emphasis)  
-
+- [1 x-tagger Dataset](#dataset)  
+	- [1.1. A Default x-tagger Dataset](#nltk)
 
 <a name="dataset"/>
 
@@ -27,6 +26,8 @@ x-tagger dataset is basically the most simples dataset for token classification.
 
 x-tagger dataset does not have cool methods like ```.map()```, ```.build_vocab```, ```.get_batch_without_pads()```. It is jus a Python list as usual. Two questions: how can you use it for complex models, or how to get this form from custom datasets?
 
+
+
 ```python
 from xtagger import df_to_xtagger_dataset
 import pandas as pd
@@ -37,6 +38,8 @@ df_test = pd.read_csv("/path/to/test.csv")
 data_train = df_to_xtagger_dataset(df_train)
 data_test = df_to_xtagger_dataset(df_test)
 ```
+
+<a name="nltk"/>
 
 ### NLTK Penn Treebank
 
