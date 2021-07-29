@@ -297,6 +297,17 @@ model.evaluate(
 
 <a name="regex"/>
 
-## ```xtagger.EnglishRegExTagger```
+## ```xtagger.EnglishRegExTagger(rules = None, use_default = True, mode = "morphological")```
 
 Handling unknown words or computation time of HMM can be stressful. ```xtagger.EnglishRegExTagger``` a helper module. With its morphological mode, it handles unknown words at evaluation which are not seen at train set. With that property, precision of the task increases. With its prior mode, it handles the computational complexity of decoding. If a prior regular expression rule matches with a word, HMM does not compute probability for that word, it assigns its RegEx tag. But, everything has a price. With a weak prior, you can encounter poor precision.
+
+- ```rules```: A list of rules that are given as tuple.
+- ```use_default```: Default RegEx matching:
+	- (r'.\*ing\$', 'VERB'),
+        - (r'.\*ed\$', 'VERB'),
+        - (r'.\*es\$', 'VERB'),
+        - (r'.\*\'s\$', 'NOUN'),
+        - (r'.\*s\$', 'NOUN'),
+        - (r'\\*T?\\*?-\[0-9\]+\$', 'X'),
+        - (r'^-?\[0-9\]+(.\[0-9\]+)?$', 'NUM'),
+        - (r'.\*', 'NOUN')- 
