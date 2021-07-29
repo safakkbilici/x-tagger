@@ -166,8 +166,8 @@ x-tagger support many algorithms! From Deep Learning to Computational Lingustics
 ```xtagger.HiddenMarkovModel(extend_to = "bigram", language="en", morphological = None, prior = None)```
 - ```extend_to```: type of HiddenMarkovModel. Current implementations: \["bigram", "trigram", "deleted_interpolation\]
 - ```language```: Language of model. Not important but best practice to use.
-- ```morphological```: ```xtagger.\[Language\]RegexTagger``` object with ```mode = "morphological"``` parameter.
-- ```prior```: ```xtagger.\[Language\]RegexTagger``` object with ```mode = "prior"``` parameter.
+- ```morphological```: ```xtagger.[Language]RegexTagger``` object with ```mode = "morphological"``` parameter.
+- ```prior```: ```xtagger.[Language]RegexTagger``` object with ```mode = "prior"``` parameter.
 	* ```HiddenMarkovModel.fit(train_set, start_token = ".")```
 		* ```train_set```: x-tagger Dataset for training.
 		* ```start_token```: Start token in your training tags.
@@ -176,12 +176,12 @@ x-tagger support many algorithms! From Deep Learning to Computational Lingustics
 		*  ```random_size```: Select random samples in evaluation for efficiency.
 		*  ```seed```: Random seed.
 		*  ```eval_metrics```: Evaluation metrics. See more for ```xtagger.utils.metrics``` section.
-		*  ```morphological```: For using initialized ```xtagger.\[Language\]RegexTagger```. Flexibility comes from passing it at initialiation but not using with ```morphological = False```.
-		*  ```prior```: For using initialized ```xtagger.\[Language\]RegexTagger```. Flexibility comes from passing it at initialiation but not using with ```prior = False```.
+		*  ```morphological```: For using initialized ```xtagger.[Language]RegexTagger```. Flexibility comes from passing it at initialiation but not using with ```morphological = False```.
+		*  ```prior```: For using initialized ```xtagger.[Language]RegexTagger```. Flexibility comes from passing it at initialiation but not using with ```prior = False```.
 	* ```HiddenMarkovModel.predict(words, morphological = False, prior = False)```
 		* ```words```: List of words for your sentence.
-		* ```morphological```: For using initialized ```xtagger.\[Language\]RegexTagger```.
-		* ```prior```: For using initialized ```xtagger.\[Language\]RegexTagger```.
+		* ```morphological```: For using initialized ```xtagger.[Language]RegexTagger```.
+		* ```prior```: For using initialized ```xtagger.[Language]RegexTagger```.
 
 
 _Note_: Evaluation takes much more time than fitting. This is because of complexity of viterbi decoding. ```random_size``` can give convergent results when considering law of large numbers. As a result, complexity of trigram and deleted_interpolation is higher than bigram. We will release benchmarks of x-tagger.
