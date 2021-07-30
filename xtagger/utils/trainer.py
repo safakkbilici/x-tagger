@@ -122,4 +122,8 @@ class PyTorchTrainer():
 
         results["eval_loss"] = eval_loss
         results["train_loss"] = train_loss
-        return results
+        return model, results
+
+
+    def evaluate(self):
+        pass
