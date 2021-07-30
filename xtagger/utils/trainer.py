@@ -3,13 +3,18 @@ from xtagger.utils import metrics
 import torch.nn as nn
 from tqdm.auto import tqdm
 
-class PyTorchTrainer():
-    def __init__(self,model, optimizer, criterion, train_iterator, val_iterator, TEXT, TAGS, device, eval_metrics = ["acc"], checkpointing = None, result_type = "%"):
+class PyTorchTagTrainer():
+    def __init__(self,model, optimizer, criterion, train_iterator, val_iterator, test_iterator, TEXT, TAGS, device, eval_metrics = ["acc"], checkpointing = None, result_type = "%"):
         self.model = model
         self.optimizer = optimizer
         self.criterion = criterion
         self.train_iterator = train_iterator
         self.val_iterator = val_iterator
+        self.test_iterator = test_iterator
+        
+        if self.test_iterator == None:
+            self.test_iterator = self.val_iterator
+        
         self.TEXT = TEXT
         self.TAGS = TAGS
         self.TAG_PAD_IDX = self.TAGS.vocab.stoi[self.TAGS.pad_token]
@@ -126,4 +131,45 @@ class PyTorchTrainer():
 
 
     def evaluate(self):
-        pass
+        test_y_pred = []
+        test_y_true = []
+        total = len(self.test_iterator)
+
+        test_loss, test_count = 0, 0
+        with tqdm(total = total) as ee:
+            for batch in self.test_iterator:
+                if not self.batch_first:
+                    text = batch.sentence.permute(1,0).to(self.device)
+                    tags = batch.tags.permute(1,0).to(self.device)
+                    with torch.no_grad():
+                        self.model.eval()
+                        test_count += 1
+                        out = self.model.forward(text)
+
+                        preds = torch.argmax(out, dim=-1).squeeze(dim=0).flatten()
+                        loss = self.criterion(out.permute(0,2,1).float(), tags.long())
+                        
+                        test_loss += loss.item()
+                        
+                        tag_sample = tags.contiguous().view(-1)
+                        non_pad_elements = (tag_sample != self.TAG_PAD_IDX).nonzero()
+                        non_pad_preds = preds[non_pad_elements].squeeze(dim=-1)
+                        non_pad_targets = tag_sample[non_pad_elements].squeeze(dim=-1)
+                        test_y_pred.extend([self.TAGS.vocab.itos[a] for a in non_pad_preds])
+                        test_y_true.extend([self.TAGS.vocab.itos[a] for a in non_pad_targets])
+                        ee.update()
+
+        test_loss = test_loss / test_count
+        test_preds_oh, test_gt_oh = metrics.tag2onehot(test_y_pred, test_y_true, self.TAGS.vocab.itos)
+
+        results = {}
+        results["eval"] = metrics.metric_results(
+            test_gt_oh,
+            test_preds_oh,
+            self.eval_metrics,
+            self.result_type,
+            self.TAGS.vocab.itos
+        )
+
+        results["eval_loss"] = eval_loss
+        return results
