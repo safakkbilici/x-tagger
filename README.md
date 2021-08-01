@@ -39,6 +39,9 @@ pip install x-tagger
 ```bash
 pip install git+https://github.com/safakkbilici/x-tagger
 ```
+### Documentation
+
+[See.](https://github.com/safakkbilici/x-tagger/blob/main/docs/README.md)
 
 ### Examples
 
@@ -53,5 +56,5 @@ pip install git+https://github.com/safakkbilici/x-tagger
 ## Beautiful Carbon Example
 
 <p align="center">
-  <img src="assets/carbon.png"/>
+  <img src="assets/carbon.png"/ width="500" height="600">
 </p>
