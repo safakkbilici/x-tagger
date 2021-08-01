@@ -20,6 +20,8 @@ x-tagger is a Natural Language Processing toolkit for token classification in it
   * LSTM-CNN, LSTM-CRF
   * <s>more metrics for LSTM\-\*</s>.
   * <s>saving and loading models with metric monitoring</s>.
+  * <s> Wrapper for PyTorch sequence labeling models</s>.
+  * Wrapper for PyTorch models in general.
 
 Remainder: x-tagger is currently in beta release and one-person project.
 
