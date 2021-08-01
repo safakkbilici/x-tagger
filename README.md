@@ -42,7 +42,12 @@ pip install git+https://github.com/safakkbilici/x-tagger
 
 ### Examples
 
-For detailed examples, please see [docs](https://github.com/safakkbilici/x-tagger/blob/main/docs/README.md).
+- [Hidden Markov Models](https://github.com/safakkbilici/x-tagger/blob/main/examples/Hidden%20Markov%20Models.ipynb)
+- [Morphological and Prior Support](https://github.com/safakkbilici/x-tagger/blob/main/examples/Morphological%20and%20Prior%20Support.ipynb)
+- [Writing Custom Metrics (Matthews Correlation Coefficient)](https://github.com/safakkbilici/x-tagger/blob/main/examples/Writing%20Custom%20Metrics%20(Matthews%20Correlation%20Coefficient).ipynb)
+- [Long Short-Term Memory](https://github.com/safakkbilici/x-tagger/blob/main/examples/Long%20Short-Term%20Memory.ipynb)
+- [Model Monitoring and Checkpointing](https://github.com/safakkbilici/x-tagger/blob/main/examples/Model%20Checkpointing.ipynb)
+- [x-tagger PyTorchTagWrapper](https://github.com/safakkbilici/x-tagger/blob/main/examples/x-tagger%20PyTorchTagWrapper.ipynb)
 
 
 ## Beautiful Carbon Example
