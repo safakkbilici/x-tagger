@@ -56,5 +56,5 @@ pip install git+https://github.com/safakkbilici/x-tagger
 ## Beautiful Carbon Example
 
 <p align="center">
-  <img src="assets/carbon.png"/ width="500" height="600">
+  <img src="assets/carbon.png"/ width="800" height="900">
 </p>
