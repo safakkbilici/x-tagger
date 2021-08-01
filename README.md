@@ -1,4 +1,4 @@
-# x-tagger
+# x-tagger: A Natural Language Processing Toolkit For Sequence Labeling In Its Simplest Form.
 
 <p align="center">
   <img src="assets/logo.png"/>
