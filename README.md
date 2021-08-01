@@ -25,17 +25,25 @@ x-tagger is a Natural Language Processing toolkit for token classification in it
 
 Remainder: x-tagger is currently in beta release and one-person project.
 
-## Examples
+## Getting started
 
-For detailed examples, please see [docs](https://github.com/safakkbilici/x-tagger/blob/main/docs/README.md).
+### Installation
 
-## Installing
-
-Library is still-in-developement. So building from source is not recommended. Use ```pip``` for latest stable version
+- Using pip:
 
 ```bash
 pip install x-tagger
 ```
+- Built from source:
+
+```bash
+pip install git+https://github.com/safakkbilici/x-tagger
+```
+
+### Examples
+
+For detailed examples, please see [docs](https://github.com/safakkbilici/x-tagger/blob/main/docs/README.md).
+
 
 ## Beautiful Carbon Example
 
