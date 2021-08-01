@@ -1,4 +1,4 @@
-# x-tagger
+# x-tagger: A Natural Language Processing Toolkit For Sequence Labeling In Its Simplest Form.
 
 <p align="center">
   <img src="assets/logo.png"/>
@@ -20,20 +20,30 @@ x-tagger is a Natural Language Processing toolkit for token classification in it
   * LSTM-CNN, LSTM-CRF
   * <s>more metrics for LSTM\-\*</s>.
   * <s>saving and loading models with metric monitoring</s>.
+  * <s> Wrapper for PyTorch sequence labeling models</s>.
+  * Wrapper for PyTorch models in general.
 
 Remainder: x-tagger is currently in beta release and one-person project.
 
-## Examples
+## Getting started
 
-For detailed examples, please see [docs](https://github.com/safakkbilici/x-tagger/blob/main/docs/README.md).
+### Installation
 
-## Installing
-
-Library is still-in-developement. So building from source is not recommended. Use ```pip``` for latest stable version
+- Using pip:
 
 ```bash
 pip install x-tagger
 ```
+- Built from source:
+
+```bash
+pip install git+https://github.com/safakkbilici/x-tagger
+```
+
+### Examples
+
+For detailed examples, please see [docs](https://github.com/safakkbilici/x-tagger/blob/main/docs/README.md).
+
 
 ## Beautiful Carbon Example
 
