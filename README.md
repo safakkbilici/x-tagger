@@ -4,23 +4,19 @@
   <img src="assets/logo.png"/>
 </p>
 
-x-tagger is a Natural Language Processing toolkit for token classification in its simplest form.
+x-tagger is a Natural Language Processing toolkit for sequence labeling in its simplest form. It allows you to play with all kind of data: pandas dataframe, nltk tagged corpus, .txt, torchtext iterator and 🤗 datasets. Due to its data transformations, abstraction and wrapper, you can train almost any kind of sequence labeling model. 
 
-* It allows you to play with all kind of data: pandas dataframe, nltk tagged corpus, .txt, torchtext iterator and 🤗 datasets.
+x-tagger has built-in models like Hidden Markov Models (bigram, trigram, deleted interpolation, morphological analyzer, prior support), Long Short-Term Memory (unidirectional, bidirectional) and BERT. While you can train and inference those models with ```.fit()```, x-tagger serves nearly 8 different built-in metrics as well. Besides, if one might want to write custom metrics, x-tagger serves a base class for all kind of metrics!
 
-* Supports only Hidden Markov Model with its extensions (viterbi decoding, bigram, trigram, delete interpolation), Long Short-Term Memory with its extensions (unidirectional, bidirectional), BERT; for now.
+For gradient based models, we provide a model monitoring and checkpointing class for saving best model and loading them with 2-3 lines of code.
+
+So, what if you want a sequence labeling model but x-tagger does not have it? x-tagger provides a PyTorch Sequence Labeling Wrapper module for your model. Once you have wrote your custom PyTorch model, PyTorchTagTrainer module does everything else!
 
 * There are upcoming features soon:
   * Bidirectional Hidden Markov Models.
-  * <s>Morphological way to dealing with unkown words (language dependent)</s>.
   * Maximum Entropy Markov Models (MEMM).
-  * <s>Prior RegEx tagger for computational efficiency in HMMs (language dependent)</s>.
   * Beam search.
-  * <s>Different metrics</s>.
   * LSTM-CNN, LSTM-CRF
-  * <s>more metrics for LSTM\-\*</s>.
-  * <s>saving and loading models with metric monitoring</s>.
-  * <s> Wrapper for PyTorch sequence labeling models</s>.
   * Wrapper for PyTorch models in general.
 
 Remainder: x-tagger is currently in beta release and one-person project.
