@@ -12,6 +12,10 @@ from xtagger.lstm_tagger.lstm import LSTM
 from xtagger.utils import metrics
 from xtagger.utils import callbacks
 
+from sklearn.exceptions import UndefinedMetricWarning
+import warnings
+warnings.filterwarnings('ignore', category=UndefinedMetricWarning)
+
 class LSTMForTagging(object):
     def __init__(self,
                  input_dim,
@@ -146,11 +150,11 @@ class LSTMForTagging(object):
                      
         test_preds_oh, test_gt_oh = metrics.tag2onehot(test_y_pred, test_y_true, self.TAGS.vocab.itos)
         results = metrics.metric_results(
-            test_gt_oh,
-            test_preds_oh,
+            test_gt_oh[1:],
+            test_preds_oh[1:],
             eval_metrics,
             result_type,
-            self.TAGS.vocab.itos
+            self.TAGS.vocab.itos[1:]
         )
 
         return results
@@ -172,16 +176,13 @@ class LSTMForTagging(object):
                 text = batch.sentence.permute(1,0)
                 tags = batch.tags.permute(1,0)
                 with torch.no_grad():
-                    #for text_sample, tag_sample in zip(text, tags):
                     self.model.eval()
                     eval_count += 1
-                    #out = self.model.forward(text[None,:])
                     out = self.model.forward(text)
                     preds = torch.argmax(out, dim=-1).squeeze(dim=0).flatten()
-                    loss = self.criterion(out.permute(0,2,1).float(), tags.long()) #tags[None, :]
+                    loss = self.criterion(out.permute(0,2,1).float(), tags.long())
                     
                     eval_loss += loss.item()
-                    #non_pad_elements = (tag_sample != self.TAG_PAD_IDX).nonzero()
                     tag_sample = tags.contiguous().view(-1)
                     non_pad_elements = (tag_sample != self.TAG_PAD_IDX).nonzero()
                     non_pad_preds = preds[non_pad_elements].squeeze(dim=-1)
@@ -194,13 +195,11 @@ class LSTMForTagging(object):
                 text = batch.sentence.permute(1,0)
                 tags = batch.tags.permute(1,0)
                 with torch.no_grad():
-                    #for text_sample, tag_sample in zip(text, tags):
                     self.model.eval()
                     train_count += 1
-                    #out = self.model.forward(text[None,:])
                     out = self.model.forward(text)
                     preds = torch.argmax(out, dim=-1).squeeze(dim=0).flatten()
-                    loss = self.criterion(out.permute(0,2,1).float(), tags.long()) #tags[None, :]
+                    loss = self.criterion(out.permute(0,2,1).float(), tags.long())
 
                     train_loss += loss.item()
                     tag_sample = tags.contiguous().view(-1)
@@ -258,7 +257,12 @@ class LSTMForTagging(object):
         top_predictions = predictions.argmax(-1)
         predicted_tags = [self.TAGS.vocab.itos[t.item()] for t in top_predictions]
         return list(zip(tokens, predicted_tags)), unks
-    
 
+    def configure_optimizer(self, optimizer: torch.optim, **args):
+        self.optimizer = optimizer(self.model.parameters(), **args)
 
-    
+    def configure_loss_fn(self, loss_fn: torch.nn, **args):
+        self.criterion = loss_fn(**args)
+
+    def get_model_details(self):
+        return {"model": self.model, "optimizer": self.optimizer, "loss function": self.criterion}
