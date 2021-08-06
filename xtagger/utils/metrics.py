@@ -8,6 +8,10 @@ from sklearn.metrics import (
 )
 import xtagger
 
+from sklearn.exceptions import UndefinedMetricWarning
+import warnings
+warnings.filterwarnings('ignore', category=UndefinedMetricWarning) 
+
 class xMetrics():
     def __init__(self, y_true, y_pred, tags=None):
         self.y_true = y_true
