@@ -215,7 +215,7 @@ class BERTForTagging(object):
         token_tensor = torch.LongTensor(numericalized_tokens)
         token_tensor = token_tensor.unsqueeze(0).to(self.device)
 
-        preds = self.model(token_tensor)
+        predictions = self.model(token_tensor)
         top_predictions = predictions.argmax(-1)
         predicted_tags = [self.TAG.vocab.itos[t.item()] for t in top_predictions]
 
