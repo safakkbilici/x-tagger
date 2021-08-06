@@ -208,7 +208,7 @@ class BERTForTagging(object):
 
 
         numericalized_tokens = tokenizer.convert_tokens_to_ids(tokens)
-        numericalized_tokens = [self.TEXT..init_token] + numericalized_tokens
+        numericalized_tokens = [self.TEXT.init_token] + numericalized_tokens
 
         unk_token_id = self.TEXT.unk_token
         unks = [t for t, n in zip(tokens, numericalized_tokens) if n == unk_token_id]
