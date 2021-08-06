@@ -196,25 +196,31 @@ class BERTForTagging(object):
         return results
 
 
-    def predict(self, sentence):
+    def predict(self, sentence, tokenizer):
         self.model.eval()
         if isinstance(sentence, str):
-            nlp = spacy.load("en_core_web_sm")
-            tokens = [token.text for token in nlp(sentence)]
+            tokens = tokenizer.tokenize(sentence)
         else:
-            tokens = [token for token in sentence]
+            tokens = sentence
 
         if self.TEXT.lower:
             tokens = [t.lower() for t in tokens]
 
-        numericalized_tokens = [self.TEXT.vocab.stoi[t] for t in tokens]
-        unk_idx = self.TEXT.vocab.stoi[self.TEXT.unk_token]
-        unks = [t for t, n in zip(tokens, numericalized_tokens) if n == unk_idx]
+
+        numericalized_tokens = tokenizer.convert_tokens_to_ids(tokens)
+        numericalized_tokens = [self.TEXT..init_token] + numericalized_tokens
+
+        unk_token_id = self.TEXT.unk_token
+        unks = [t for t, n in zip(tokens, numericalized_tokens) if n == unk_token_id]
         token_tensor = torch.LongTensor(numericalized_tokens)
         token_tensor = token_tensor.unsqueeze(0).to(self.device)
-        predictions = self.model(token_tensor).squeeze(0)
+
+        preds = self.model(token_tensor)
         top_predictions = predictions.argmax(-1)
-        predicted_tags = [self.TAGS.vocab.itos[t.item()] for t in top_predictions]
+        predicted_tags = [self.TAG.vocab.itos[t.item()] for t in top_predictions]
+
+        predicted_tags = predicted_tags[1:]
+        assert len(tokens) == len(predicted_tags)
         return list(zip(tokens, predicted_tags)), unks
     
     def configure_optimizer(self, optimizer: torch.optim, **args):
