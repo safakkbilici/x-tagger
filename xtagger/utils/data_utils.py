@@ -179,7 +179,13 @@ def tokenize_and_align_labels(examples, tokenizer, tags, label_all_tokens):
 
 def df_to_hf_dataset(df, tags, tokenizer, device, label_all_tokens=True):
     dataset = hfd.Dataset.from_pandas(df)
-    dataset = dataset.map(tokenize_and_align_labels,
-                          fn_kwargs = {'tokenizer': tokenizer,'tags': tags, 'label_all_tokens': label_all_tokens},
-                          batched = True)
+    dataset = dataset.map(
+        tokenize_and_align_labels,
+        fn_kwargs = {
+            'tokenizer': tokenizer,
+            'tags': tags,
+            'label_all_tokens': label_all_tokens
+        },
+        batched = True
+    )
     return dataset

@@ -53,6 +53,8 @@ class PyTorchTagTrainer():
                 results = self._eval()
                 print(results)
 
+        return self.model
+
     def _eval(self):
         total = len(self.train_iterator) + len(self.val_iterator)
         eval_loss, eval_count = 0, 0
@@ -127,7 +129,7 @@ class PyTorchTagTrainer():
 
         results["eval_loss"] = eval_loss
         results["train_loss"] = train_loss
-        return model, results
+        return results
 
 
     def evaluate(self):
