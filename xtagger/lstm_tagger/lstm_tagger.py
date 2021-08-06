@@ -22,6 +22,7 @@ class LSTMForTagging(object):
                  output_dim,
                  TEXT,
                  TAGS,
+                 device,
                  embedding_dim=100,
                  hidden_dim=128,
                  n_layers = 2,
@@ -53,7 +54,7 @@ class LSTMForTagging(object):
         else:
             self.TEXT_PAD_IDX = text_pad_idx
 
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = device
         if cuda and self.device.type=="cpu":
             print("can't see cuda, automatically using cpu.")
 
