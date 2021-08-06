@@ -3,6 +3,7 @@ import datasets as hfd
 import pickle
 import pandas as pd
 import torch
+import functools
 
 try:
     from torchtext.legacy import data
@@ -20,6 +21,14 @@ def df_to_xtagger_dataset(df):
         mapped = list(map(lambda x, y: (x,y), tokens, ner_tags))
         data2list.append(mapped)
     return data2list
+
+def truncate_and_convert(tokens, tokenizer, max_len):
+    tokens = tokens[:max_len-1]
+    tokens = tokenizer.convert_tokens_to_ids(tokens)
+    return tokens
+
+def truncate(token_ids, max_len):
+    return token_ids[:max_len-1]
 
 def text_to_xtagger_dataset(filename, word_tag_split = " ", word_split = "\n", sent_split="\n\n"):
     with open(filename,"r") as f:
@@ -53,13 +62,48 @@ def xtagger_dataset_to_df(dataset, row_as_list=False):
         df = df.append(d,ignore_index=True)
     return df
 
-def df_to_torchtext_data(df_train, df_test, device, batch_size, min_freq = 2,
-                         pretrained_embeddings = False):
+def df_to_torchtext_data(df_train, df_test, device, batch_size, min_freq = 2, pretrained_embeddings = False, transformers = False, tokenizer = None, model_name = "bert-base-cased"):
+
     df_train.to_csv("train.csv",index=False)
     df_test.to_csv("test.csv",index=False)
+    
+    if transformers:
+        max_len = tokenizer.max_model_input_sizes[model_name]
+        text_pp = functools.partial(
+            truncate_and_convert,
+            tokenizer = tokenizer,
+            max_len = max_len
+        )
 
-    TEXT = data.Field(lower = True)
-    TAGS = data.Field(unk_token = None)
+        tag_pp = functools.partial(
+            truncate,
+            max_len = max_len
+        )
+
+        init_token_id = tokenizer.cls_token_id
+        pad_token_id = tokenizer.pad_token_id
+        unk_token_id = tokenizer.unk_token_id
+
+        TEXT = data.Field(
+            use_vocab = False,
+            lower = True,
+            preprocessing = text_pp,
+            init_token = init_token_id,
+            pad_token = pad_token_id,
+            unk_token = unk_token_id
+        )
+        
+        TAGS = data.Field(
+            unk_token = None,
+            init_token = '<pad>',
+            preprocessing = tag_pp
+        )
+    
+
+    else:
+        TEXT = data.Field(lower = True)
+        TAGS = data.Field(unk_token = None)
+    
     fields = (("sentence", TEXT), ("tags", TAGS))
 
     train_data, valid_data, test_data = data.TabularDataset.splits(
