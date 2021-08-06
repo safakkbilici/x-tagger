@@ -48,21 +48,21 @@ class Checkpointing():
         return model
 
     def save_in(self, model, results):
-        if self.monitor.split("_")[-1] == "loss":
-            self.history.append(results[self.monitor])
-        elif self.monitor.split("_")[-1] == "acc":
-            self.history.append(results[self.monitor.split("_")[0]][self.monitor.split("_")[1]])
-        else:
-            if len(self.monitor.split("_")) == 3:
-                save_type = self.monitor.split("_")[0]
-                metric = '_'.join(self.monitor.split("_")[1:])
-                self.history.append(results[save_type][metric])
-            elif len(self.monitor.split("_")) == 4:
-                save_type = self.monitor.split("_")[0]
-                metric = '_'.join(self.monitor.split("_")[1:-1])
-                self.history.append(results[save_type][metric][self.monitor.split("_")[-1]])
-        
         if self.save_best:
+            if self.monitor.split("_")[-1] == "loss":
+                self.history.append(results[self.monitor])
+            elif self.monitor.split("_")[-1] == "acc":
+                self.history.append(results[self.monitor.split("_")[0]][self.monitor.split("_")[1]])
+            else:
+                if len(self.monitor.split("_")) == 3:
+                    save_type = self.monitor.split("_")[0]
+                    metric = '_'.join(self.monitor.split("_")[1:])
+                    self.history.append(results[save_type][metric])
+                elif len(self.monitor.split("_")) == 4:
+                    save_type = self.monitor.split("_")[0]
+                    metric = '_'.join(self.monitor.split("_")[1:-1])
+                    self.history.append(results[save_type][metric][self.monitor.split("_")[-1]])
+
             if self.monitor.split("_")[-1] in ["loss", "acc"]:
                 if self.monitor.split("_")[-1] == "loss":
                     monitor_metric = results[self.monitor]
