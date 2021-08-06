@@ -44,7 +44,7 @@ class BERTForTagging(object):
         print(f'The model has {trainable} trainable parameters')
         print(f'The model has {nontrainable} non-trainable parameters')
 
-        self.criterion = nn.CrossEntropyLoss()
+        self.criterion = nn.CrossEntropyLoss(ignore_index=self.TAG_PAD_IDX)
         self.criterion = self.criterion.to(self.device)
         self.optimizer = torch.optim.Adam(self.model.parameters())
 
@@ -217,7 +217,7 @@ class BERTForTagging(object):
 
         predictions = self.model(token_tensor)
         top_predictions = predictions.argmax(-1)
-        predicted_tags = [self.TAG.vocab.itos[t.item()] for t in top_predictions]
+        predicted_tags = [self.TAGS.vocab.itos[t.item()] for t in top_predictions]
 
         predicted_tags = predicted_tags[1:]
         assert len(tokens) == len(predicted_tags)
