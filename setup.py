@@ -20,8 +20,7 @@ setup(
         "datasets>=1.6",
         "torch>=1.6",
         "transformers>=4.0",
-        "torchtext",
-        "seqeval"
+        "torchtext"
     ],
     classifiers=[
         'Development Status :: 4 - Beta',
