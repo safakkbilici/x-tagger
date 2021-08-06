@@ -1,6 +1,6 @@
 from xtagger.hmm_tagger.hmm import HiddenMarkovModel
 from xtagger.lstm_tagger.lstm_tagger import LSTMForTagging
-#from xtagger.bert_tagger.bert import BERTForTagging
+from xtagger.bert_tagger.bert_tagger import BERTForTagging
 from xtagger.utils.data_utils import (
     df_to_xtagger_dataset,
     save_as_pickle,
