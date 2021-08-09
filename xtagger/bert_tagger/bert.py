@@ -2,7 +2,13 @@ import torch.nn as nn
 from transformers import AutoModel
 
 class BERT(nn.Module):
-    def __init__(self, bert_name, output_dim, dropout, dont_stop_pretraining=False):
+    def __init__(
+            self,
+            bert_name: str,
+            output_dim: int,
+            dropout: float,
+            dont_stop_pretraining: bool = False
+    ) -> None:
         super(BERT, self).__init__()
         self.bert_name = bert_name
 

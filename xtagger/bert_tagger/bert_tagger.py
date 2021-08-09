@@ -5,6 +5,12 @@ import torch
 import torch.nn as nn
 import numpy as np
 from tqdm.auto import tqdm
+from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
+
+try:
+    import torchtext.legacy.data as ttext
+except ImportError:
+    import torchtext.data as ttext
 
 from transformers import logging as hf_logging
 hf_logging.set_verbosity_error()
@@ -17,7 +23,38 @@ import warnings
 warnings.filterwarnings("ignore")
 
 class BERTForTagging(object):
-    def __init__(self, output_dim, TEXT, TAGS, dropout, device, model_name = "bert-base-cased", dont_stop_pretraining=False, cuda=True):
+    def __init__(
+            self,
+            output_dim: int,
+            TEXT: ttext.field.Field,
+            TAGS: ttext.field.Field,
+            dropout: float,
+            device: torch.device,
+            model_name: str = "bert-base-cased",
+            dont_stop_pretraining: bool = False,
+            cuda: bool = True
+    ) -> None:
+        r"""
+        Args:
+            output_dim: the dimension of the target vocab. Should be ``len(TAGS)``.
+            
+            TEXT: the vocab with torchtext.data.field.Field
+
+            TAGS: the tag vocab with torchtext.data.field.Field
+
+            dropout: the dropout rate of last layer
+
+            device: the pytorch device variable
+
+            model_name: normally this class calls BERT model but for 
+                        flexibility user can call almost all encoder models
+                        from huggingface transformers.
+
+            dont_stop_pretraining: if true, pretrained bert parameters will have
+                                   requires_grad = True
+        
+            cuda: for not using cuda device
+        """
         self.output_dim = output_dim
         self.TEXT = TEXT
         self.TAGS = TAGS
@@ -48,7 +85,31 @@ class BERTForTagging(object):
         self.criterion = self.criterion.to(self.device)
         self.optimizer = torch.optim.Adam(self.model.parameters())
 
-    def fit(self, train_set, test_set, epochs=10, eval_metrics = ["acc"], result_type = "%", checkpointing = None):
+    def fit(
+            self,
+            train_set: ttext.iterator.BucketIterator,
+            test_set: ttext.iterator.BucketIterator,
+            epochs = 10: int,
+            eval_metrics: List[str] = ["acc"],
+            result_type: str = "%",
+            checkpointing: Optional[callbacks.Checkpointing] = None
+    ) -> dict:
+        r"""
+        Args:
+            train_set: training set ``torchtext.data.iterator.BucketIterator``
+            
+            test_set: evaluation or test set ``torchtext.data.iterator.BucketIterator``
+
+            epochs: number of epochs for training.
+
+            eval_metrics: Current implemented eval metrics as string. Or a custom 
+                          metric that is inherited from ``xtagger.utils.metrics.xMetric``
+                          See docs for how to write custom metrics.
+
+            result_type: pass ``%`` for percentage, else decimal numbers.
+
+            checkpointing: ``xtagger.utils.callbacks.Checkpointing`` object.
+        """
         self.train_set = train_set
         self.test_set = test_set
         self._metrics = eval_metrics
@@ -80,7 +141,25 @@ class BERTForTagging(object):
                     checkpointing.save_in(self.model, results)
                 print(results)
 
-    def evaluate(self, test_set=None, eval_metrics = ["acc"], result_type = "%"):
+    def evaluate(
+            self,
+            test_set: Optional[ttext.iterator.BucketIterator] = None,
+            eval_metrics: List[str] = ["acc"],
+            result_type: str = "%"
+    ) -> dict:
+         r"""
+        Args:
+            test_set: evaluation or test set ``torchtext.data.iterator.BucketIterator``
+
+            eval_metrics: Current implemented eval metrics as string. Or a custom 
+                          metric that is inherited from ``xtagger.utils.metrics.xMetric``
+                          See docs for how to write custom metrics.
+
+            result_type: pass ``%`` for percentage, else decimal numbers.
+
+        Returns:
+            Dictionary of dictionaries, or dictionary with ints with metric results.
+        """
         if test_set == None:
             test_set = self.test_set
 
@@ -196,7 +275,19 @@ class BERTForTagging(object):
         return results
 
 
-    def predict(self, sentence, tokenizer):
+    def predict(
+            self,
+            sentence: List[str],
+            tokenizer
+    ):
+        r"""
+        Args:
+            sentence: list of words or a string
+            tokenizer: the tokenizer that is used at training time
+
+        Returns:
+            Tagged words as List[Tuple[str, str]] and unknown tokens.
+        """
         self.model.eval()
         if type(sentence) == list:
             tokens = sentence
@@ -227,5 +318,9 @@ class BERTForTagging(object):
         self.criterion = loss_fn(**args)
 
     def get_model_details(self):
-        return {"model": self.model, "optimizer": self.optimizer, "loss function": self.criterion}
+        return {
+            "model": self.model,
+            "optimizer": self.optimizer,
+            "loss function": self.criterion
+        }
      
