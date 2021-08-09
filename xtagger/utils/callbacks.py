@@ -1,6 +1,7 @@
 import xtagger
 import torch
 import numpy as np
+from typing import List, Optional, Tuple
 
 def check_monitor_metrics(metric):
     if metric == None:
@@ -21,7 +22,26 @@ def check_monitor_eval_metrics(monitor, metrics):
             raise ValueError(f"Please add also {monitor} to eval_metrics argument.")
 
 class Checkpointing():
-    def __init__(self, model_path, model_name, monitor = None, mode = "maximize", save_best = True, verbose = 0):
+    def __init__(
+            self,
+            model_path: str,
+            model_name: str,
+            monitor: Optional[str] = None,
+            mode: str = "maximize",
+            save_best: bool = True,
+            verbose: int = 0
+    ) -> None:
+        r"""
+        Args:
+            model_path: directory for checkpoint.
+
+            model_name: checkpoint file name for model.
+
+            monitor: monitored metric name. If nıne and save_best is false,
+                     than saves the model at every epoch.
+
+            verbose: for printing monitored metric value at every epoch.
+        """
         self.model_path = model_path
         self.model_name = model_name
         self.monitor = monitor
