@@ -6,33 +6,68 @@ import random
 import torch.nn as nn
 import torch.optim as optim
 from tqdm.auto import tqdm
+from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
 from xtagger.utils.time_utils import epoch_time
 from xtagger.lstm_tagger.lstm import LSTM
 from xtagger.utils import metrics
 from xtagger.utils import callbacks
 
+try:
+    import torchtext.legacy.data as ttext
+except ImportError:
+    import torchtext.data as ttext
+
 from sklearn.exceptions import UndefinedMetricWarning
 import warnings
 warnings.filterwarnings('ignore', category=UndefinedMetricWarning)
 
 class LSTMForTagging(object):
-    def __init__(self,
-                 input_dim,
-                 output_dim,
-                 TEXT,
-                 TAGS,
-                 device,
-                 embedding_dim=100,
-                 hidden_dim=128,
-                 n_layers = 2,
-                 bidirectional=True,
-                 dropout=0.25,
-                 cuda=True,
-                 tag_pad_idx = None,
-                 pad_idx = None,
-                 
-    ):
+    def __init__(
+            self,
+            input_dim: int,
+            output_dim: int,
+            TEXT: ttext.field.Field,
+            TAGS: ttext.field.Field,
+            device: torch.device,
+            embedding_dim: int = 100,
+            hidden_dim: int = 128,
+            n_layers: int = 2,
+            bidirectional: bool = True,
+            dropout: float = 0.25,
+            cuda: bool = True,
+            tag_pad_idx: Optional[int] = None,
+            pad_idx: Optional[int] = None,
+            
+    ) -> None:
+
+        r"""
+        Args:
+            input_dim: the dimension of the vocab. Should be ``len(TEXT)``.
+ 
+            output_dim: the dimension of the target vocab. Should be ``len(TAGS)``.
+
+            TEXT: the vocab with torchtext.data.field.Field
+
+            TAGS: the tag vocab with torchtext.data.field.Field
+
+            device: the pytorch device variable
+
+            embedding_dim: embedding dimension of torch.nn.Embedding
+
+            hidden_dim: the hidden dimension of torch.nn.LSTM
+
+            n_layers: the number of layers of torch.nn.LSTM
+
+            dropout: the dropout rate of output recurrent layer
+
+            cuda: for not using cuda device
+
+            tag_pad_idx: target padding index, if None: default TAGS.vocab.stoi[TAGS.pad_token]
+
+            pad_idx: input padding index, if None: default TEXT.vocab.stoi[TEXT.pad_token]
+     
+        """
 
 
         self.input_dim = input_dim
@@ -89,8 +124,31 @@ class LSTMForTagging(object):
         self.criterion = self.criterion.to(self.device)
         self.optimizer = optim.Adam(self.model.parameters())
 
+    def fit(
+            self,
+            train_set: ttext.iterator.BucketIterator,
+            test_set: ttext.iterator.BucketIterator,
+            epochs: int = 10,
+            eval_metrics: List[str] = ["acc"],
+            result_type: str = "%",
+            checkpointing: Optional[callbacks.Checkpointing] = None
+    ) -> None:
+        r"""
+        Args:
+            train_set: training set ``torchtext.data.iterator.BucketIterator``
+            
+            test_set: evaluation or test set ``torchtext.data.iterator.BucketIterator``
 
-    def fit(self, train_set, test_set, epochs=10, save_name = "lstm_model.pt", eval_metrics = ["acc"], result_type = "%", checkpointing = None):
+            epochs: number of epochs for training.
+
+            eval_metrics: Current implemented eval metrics as string. Or a custom 
+                          metric that is inherited from ``xtagger.utils.metrics.xMetric``
+                          See docs for how to write custom metrics.
+
+            result_type: pass ``%`` for percentage, else decimal numbers.
+
+            checkpointing: ``xtagger.utils.callbacks.Checkpointing`` object.
+        """
         self.train_set = train_set
         self.test_set = test_set
         self._metrics = eval_metrics
@@ -122,7 +180,25 @@ class LSTMForTagging(object):
                     checkpointing.save_in(self.model, results)
                 print(results)
 
-    def evaluate(self, test_set=None, eval_metrics = ["acc"], result_type = "%"):
+    def evaluate(
+            self,
+            test_set: ttext.iterator.BucketIterator = None,
+            eval_metrics: List[str] = ["acc"],
+            result_type: str = "%"
+    ) -> dict:
+        r"""
+        Args:
+            test_set: evaluation or test set ``torchtext.data.iterator.BucketIterator``
+
+            eval_metrics: Current implemented eval metrics as string. Or a custom 
+                          metric that is inherited from ``xtagger.utils.metrics.xMetric``
+                          See docs for how to write custom metrics.
+
+            result_type: pass ``%`` for percentage, else decimal numbers.
+
+        Returns:
+            Dictionary of dictionaries, or dictionary with ints with metric results.
+        """
         if test_set == None:
             test_set = self.test_set
 
@@ -238,7 +314,17 @@ class LSTMForTagging(object):
         results["train_loss"] = train_loss
         return results
 
-    def predict(self, sentence):
+    def predict(
+            self,
+            sentence: List[str]
+    ):
+        r"""
+        Args:
+            sentence: list of words or a string
+
+        Returns:
+            Tagged words as List[Tuple[str, str]] and unknown tokens.
+        """
         self.model.eval()
         if isinstance(sentence, str):
             nlp = spacy.load("en_core_web_sm")
