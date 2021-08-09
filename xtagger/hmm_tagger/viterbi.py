@@ -1,4 +1,5 @@
 from tqdm.auto import tqdm
+from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 import numpy as np
 from xtagger.hmm_tagger.hmm_utils import (
     get_emission,
@@ -6,16 +7,24 @@ from xtagger.hmm_tagger.hmm_utils import (
     get_transition_2
 )
 
+from xtagger.utils.regex import EnglishRegExTagger
+
+r"""
+This file contails implementation of viterbi decoder at
+evaluation and prediction level. We are documenting the types of
+arguments and returned variables for contributors.
+"""
+
 class Viterbi(object):
     def __init__(self,
-                 words,
-                 tag2tag_matrix,
-                 train_set,
-                 extend_to = "bigram",
-                 start = ".",
-                 morphological = None,
-                 prior = None,
-                 indexing = ["NUM","CONJ","X","ADJ","DET","VERB","NOUN","PRT","ADV",".","ADP","PRON"]):
+                 words: List[str],
+                 tag2tag_matrix: np.ndarray,
+                 train_set: List[Tuple[str, str]],
+                 extend_to: str = "bigram",
+                 start: str = ".",
+                 morphological: Optional[EnglishRegExTagger] = None,
+                 prior: Optional[EnglishRegExTagger] = None,
+                 indexing: str = ["."]):
         """
         decodes maximum probabilities at evaluation and inference time
         with dynamic viterbi decoder.
