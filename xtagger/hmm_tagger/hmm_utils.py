@@ -1,16 +1,31 @@
 import pandas as pd
 import numpy as np
 from tqdm.auto import tqdm
+from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 import pickle
 
-def get_emission(word, tag, train_bag):
+r"""
+This file contails helper functions for calculating transition,
+emission and other probability matrices. We are documenting the types of
+arguments and returned variables for contributors.
+"""
+
+def get_emission(
+        word: str,
+        tag: str,
+        train_bag: List[Tuple[str, str]]
+) -> Tuple[int, int]:
     tag_list = [pair for pair in train_bag if pair[1]==tag]
     count_tag = len(tag_list)
     w_given_tag_list = [pair[0] for pair in tag_list if pair[0]==word]
     count_w_given_tag = len(w_given_tag_list)
     return (count_w_given_tag, count_tag)
 
-def get_transition(tag1, tag2, train_bag):
+def get_transition(
+        tag1: str,
+        tag2: str,
+        train_bag: List[Tuple[str, str]]
+) -> Tuple[int, int]:
     tags = [pair[1] for pair in train_bag]
     count_tag1 = len([t for t in tags if t==tag1])
     count_tag1_tag2 = 0
@@ -19,7 +34,12 @@ def get_transition(tag1, tag2, train_bag):
             count_tag1_tag2 += 1
     return count_tag1_tag2, count_tag1
 
-def get_transition_2(tag1, tag2, tag3, train_bag):
+def get_transition_2(
+        tag1: str,
+        tag2: str,
+        tag3: str,
+        train_bag: List[Tuple[str, str]]
+) -> Tuple[int, int]:
     tags = [pair[1] for pair in train_bag]
     count_tag1_tag2 = 0
     for idx in range(len(tags) - 1):
@@ -36,7 +56,11 @@ def get_transition_2(tag1, tag2, tag3, train_bag):
     return count_tag1_tag2_tag3, count_tag1_tag2
 
 
-def deleted_interpolation(tags, train_tagged_words, t):
+def deleted_interpolation(
+        tags: str,
+        train_tagged_words: List[Tuple[str, str]],
+        t: tqdm
+)- > List[int]:
     lambdas = [0] * 3
     for i, tag1 in enumerate(list(tags)):
         for j, tag2 in enumerate(list(tags)):
