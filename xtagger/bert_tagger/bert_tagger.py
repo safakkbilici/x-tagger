@@ -198,13 +198,10 @@ class BERTForTagging(object):
 
     def predict(self, sentence, tokenizer):
         self.model.eval()
-        if isinstance(sentence, str):
-            tokens = tokenizer.tokenize(sentence)
-        else:
+        if type(sentence) == list:
             tokens = sentence
-
-        if self.TEXT.lower:
-            tokens = [t.lower() for t in tokens]
+        elif type(sentence) == str:
+            tokens = sentence.split()
 
 
         numericalized_tokens = tokenizer.convert_tokens_to_ids(tokens)
@@ -216,7 +213,7 @@ class BERTForTagging(object):
         token_tensor = token_tensor.unsqueeze(0).to(self.device)
 
         predictions = self.model(token_tensor)
-        top_predictions = predictions.argmax(-1)
+        top_predictions = predictions.argmax(-1).squeeze(0)
         predicted_tags = [self.TAGS.vocab.itos[t.item()] for t in top_predictions]
 
         predicted_tags = predicted_tags[1:]
