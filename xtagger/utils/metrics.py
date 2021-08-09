@@ -7,6 +7,7 @@ from sklearn.metrics import (
     classification_report
 )
 import xtagger
+from typing import List, Optional, Tuple, Union
 
 from sklearn.exceptions import UndefinedMetricWarning
 import warnings
@@ -30,7 +31,13 @@ def check_eval_metrics(metrics):
                 raise ValueError(f'User defined metric {metric} must be inherited from xtagger.utils.metrics.xMetrics')
 
 
-def metric_results(gt, preds, eval_metrics, result_type, tags):
+def metric_results(
+        gt: Union[np.ndarray, List[List[int]]],
+        preds: Union[np.ndarray, List[List[int]]],
+        eval_metrics: List[str],
+        result_type: str,
+        tags: List[str]
+) -> dict:
     results = {}
     result_t = 100 if result_type=="%" else 1
 
@@ -78,7 +85,11 @@ def metric_results(gt, preds, eval_metrics, result_type, tags):
             results[str(metric_.__name__)] = user_metric()
     return results
 
-def multiclass_f1(y_true, y_pred, tags):
+def multiclass_f1(
+        y_true: Union[np.ndarray, List[List[int]]],
+        y_pred: Union[np.ndarray, List[List[int]]],
+        tags: List[str]
+) -> dict:
     MODE = "classwise_f1"
     output_dict = classification_report(y_true, y_pred, target_names = tags, output_dict = True)
     f1s = {}
@@ -87,7 +98,11 @@ def multiclass_f1(y_true, y_pred, tags):
             f1s[tag_name] = output_dict[tag_name]["f1-score"]
     return f1s
 
-def multiclass_recall(y_true, y_pred, tags):
+def multiclass_recall(
+        y_true: Union[np.ndarray, List[List[int]]],
+        y_pred: Union[np.ndarray, List[List[int]]],
+        tags: List[str]
+) -> dict:
     MODE = "classwise_recall"
     output_dict = classification_report(y_true, y_pred, target_names = tags, output_dict = True)
     recalls = {}
@@ -96,7 +111,11 @@ def multiclass_recall(y_true, y_pred, tags):
             recalls[tag_name] = output_dict[tag_name]["recall"]
     return recalls
 
-def multiclass_precision(y_true, y_pred, tags):
+def multiclass_precision(
+        y_true: Union[np.ndarray, List[List[int]]],
+        y_pred: Union[np.ndarray, List[List[int]]],
+        tags: List[str]
+) -> dict:
     MODE = "classwise_precision"
     output_dict = classification_report(y_true, y_pred, target_names = tags, output_dict = True)
     precisions = {}
@@ -105,7 +124,10 @@ def multiclass_precision(y_true, y_pred, tags):
             precisions[tag_name] = output_dict[tag_name]["precision"]
     return precisions
 
-def recall(y_true, y_pred):
+def recall(
+        y_true: Union[np.ndarray, List[List[int]]],
+        y_pred: Union[np.ndarray, List[List[int]]]
+) -> dict:
     MODE = "avg_recall"
     recall_micro = recall_score(y_true, y_pred, average="micro")
     recall_macro = recall_score(y_true, y_pred, average="macro")
@@ -115,7 +137,10 @@ def recall(y_true, y_pred):
             "macro": recall_macro
     }
 
-def precision(y_true, y_pred):
+def precision(
+        y_true: Union[np.ndarray, List[List[int]]],
+        y_pred: Union[np.ndarray, List[List[int]]]
+) -> dict:
     MODE = "avg_precision"
     precision_micro = precision_score(y_true, y_pred, average="micro")
     precision_macro = precision_score(y_true, y_pred, average="macro")
@@ -125,7 +150,10 @@ def precision(y_true, y_pred):
             "macro": precision_macro
     }
 
-def f1(y_true, y_pred):
+def f1(
+        y_true: Union[np.ndarray, List[List[int]]],
+        y_pred: Union[np.ndarray, List[List[int]]]
+) -> dict:
     MODE = "avg_f1"
     f1_micro = f1_score(y_true, y_pred, average="micro")
     f1_macro = f1_score(y_true, y_pred, average="macro")
@@ -135,12 +163,19 @@ def f1(y_true, y_pred):
             "macro": f1_macro
     }
 
-def accuracy(y_true, y_pred):
+def accuracy(
+        y_true: Union[np.ndarray, List[List[int]]],
+        y_pred: Union[np.ndarray, List[List[int]]]
+) -> int:
     MODE = "acc"
     acc = accuracy_score(y_true, y_pred)
     return acc
 
-def tag2onehot(preds, ground_truth, tags):
+def tag2onehot(
+        preds: List[str],
+        ground_truth: List[str],
+        tags: List[str]
+):
     digit_pred = np.array([tags.index(tag) for tag in preds])
     digit_gt = np.array([tags.index(tag) for tag in ground_truth])
 
