@@ -1,6 +1,7 @@
 import numpy as np
 import random
 from tqdm.auto import tqdm
+from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
 import xtagger
 from xtagger.hmm_tagger.viterbi import Viterbi
@@ -13,22 +14,51 @@ from xtagger.hmm_tagger.hmm_utils import (
 
 from xtagger.utils.regex import (
     check_prior_tags,
-    check_morphological_tags
+    check_morphological_tags,
+    EnglishRegExTagger
 )
 
 from xtagger.utils import metrics
 
 class HiddenMarkovModel():
-    def __init__(self, extend_to = "bigram", language="en", morphological = None, prior = None):
+    def __init__(
+            self,
+            extend_to: str = "bigram",
+            language: str = "en",
+            morphological: Optional[EnglishRegExTagger] = None,
+            prior: Optional[EnglishRegExTagger] = None
+    ) -> None:
+        r"""
+        Args:
+            extend_to: The type of the Hidden Markov Model. 
+                       Currently supported ``bigram``, ``trigram`` and ```deleted_interpolation``.
+            
+            language: The language of the model. Passing this argument is not necessary now.
+                      But will be necessary in future releases.
+
+            morphological: The morphological support object from ``xtagger.utils.regex.EnglishRegExTagger``.
+
+            prior: The prior support object from ``xtagger.utils.regex.EnglishRegExTagger``.
+
+        """
         
         self._extend_to = extend_to
         self._morphological = morphological
         self._prior = prior
         self._extended = ["bigram", "trigram","deleted_interpolation"]
         if self._extend_to not in self._extended:
-            raise ValueError("Higher than trigrams are not currently supported. Would you want to contribute?")
+            raise ValueError("Higher than trigrams are not currently supported. Do you want to contribute?")
 
-    def fit(self, train_set, start_token = "."):
+    def fit(self, train_set: List[List[Tuple[str, str]]], start_token: str = ".") -> None:
+         r"""
+        Args:
+            train_set: xtagger dataset that is expresend in docs.
+   
+            start_token: The padding token. This is necessary since each state
+                         uses previous observation and start state does not have
+                         previous observation. So you have to choose a starting
+                         token for calculating probabilities complete.
+        """
         # multilinguality is not supported yet, but it is best practice to pass language.
         # start_token is neccesary for calculating probabilities on padded tokens
         self._train_set = train_set
@@ -109,7 +139,39 @@ class HiddenMarkovModel():
             print(f"λ1: {lambdas[0]}, λ2: {lambdas[1]}, λ3: {lambdas[2]}")
 
 
-    def evaluate(self, test_set, random_size = 30, seed = None, return_all=False, eval_metrics=["acc"], result_type = "%", morphological = True, prior = True):
+    def evaluate(
+            self,
+            test_set: List[List[Tuple[str, str]]],
+            random_size: int = 30,
+            seed: Optional[int] = None,
+            eval_metrics: List[str] = ["acc"],
+            result_type: str = "%",
+            morphological: bool = True,
+            prior: bool = True
+    ) -> dict:
+
+        r"""
+        Args:
+            test_set: xtagger dataset that is expresend in docs.
+            
+            random_size: Select random samples in evaluation for efficiency.
+
+            seed: Random seed.
+
+            eval_metrics: Current implemented eval metrics as string. Or a custom 
+                          metric that is inherited from ``xtagger.utils.metrics.xMetric``
+                          See docs for how to write custom metrics.
+
+            result_type: pass ``%`` for percentage, else decimal numbers.
+
+            morphological: if true, uses morphological object that is 
+                           initialized at ``__init__``
+
+            prior: if true, uses prior object that is initialized at ``__init__``.
+
+        Returns:
+           Dictionary of dictionaries, or dictionary with ints with metric results.
+        """
 
         # Evaluation on full test set takes soooooo long
         # because it calls viterbi decoder with O(n^2) with bigram extension
@@ -159,13 +221,27 @@ class HiddenMarkovModel():
         preds_onehot, gt_onehot = metrics.tag2onehot(preds, ground_truth, self._indexing)
 
         results = metrics.metric_results(gt_onehot, preds_onehot, eval_metrics, result_type, self._indexing)
-            
-
-        if return_all == True:
-            return results, tagged_set
         return results
 
-    def predict(self, words, morphological = False, prior = False):
+    def predict(
+            self,
+            words: List[str],
+            morphological: bool = False,
+            prior: bool = False
+    ) -> List[Tuple[str, str]]:
+        r"""
+        Args:
+            words: List of words.
+
+            morphological: if true, uses morphological object that is 
+                           initialized at ``__init__``
+
+            prior: if true, uses prior object that is initialized at ``__init__``.
+
+        Returns:
+            List of tagged words (tuples): x-tagger dataset.
+        """
+        
         viterbi_object = Viterbi(
             words = words,
             tag2tag_matrix = self._tag2tag_matrix,
