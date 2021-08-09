@@ -4,6 +4,7 @@ import pickle
 import pandas as pd
 import torch
 import functools
+from typing import List, Optional, Tuple
 
 try:
     from torchtext.legacy import data
@@ -13,7 +14,14 @@ except ImportError:
     from torchtext import datasets
 
 
-def df_to_xtagger_dataset(df):
+def df_to_xtagger_dataset(df: pd.DataFrame) -> List[List[Tuple[str, str]]]:
+    r"""
+    Args:
+        df: pandas dataframe with tag and sentence column names
+
+    Returns:
+        xtagger dataset: List[List[Tuple[str, str]]]
+    """
     data2list = []
     for index, row in tqdm(df.iterrows(), total = df.shape[0]):
         ner_tags = row["tags"]
@@ -30,7 +38,33 @@ def truncate_and_convert(tokens, tokenizer, max_len):
 def truncate(token_ids, max_len):
     return token_ids[:max_len-1]
 
-def text_to_xtagger_dataset(filename, word_tag_split = " ", word_split = "\n", sent_split="\n\n"):
+def text_to_xtagger_dataset(
+        filename: str,
+        word_tag_split: str = " ",
+        word_split: str = "\n",
+        sent_split: str = "\n\n"
+) -> List[List[Tuple[str, str]]]:
+    r"""
+    Args:
+        filename: .txt file
+
+        word_tag_split: word1[word_tag_split]tag1
+    
+        word_split: word1[word_tag_split]tag1
+                    [word_split]
+                    word2[word_tag_split]tag2
+
+       sent_split: word1[word_tag_split]tag1
+                   [word_split]
+                   word2[word_tag_split]tag2
+                   [sent_split]
+                   word1[word_tag_split]tag1
+                   [word_split]
+                   word2[word_tag_split]tag2
+    Returns:
+        xtagger dataset: List[List[Tuple[str, str]]]
+    """
+    
     with open(filename,"r") as f:
         data = f.read()
     sentences = data.split(sent_split)
@@ -46,7 +80,16 @@ def save_as_pickle(hmm_dataset, name):
     with open(f"{name}.pkl", wb) as handle:
         pickle.dump(train_data2list, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-def xtagger_dataset_to_df(dataset, row_as_list=False):
+def xtagger_dataset_to_df(
+        dataset: List[List[Tuple[str, str]]],
+        row_as_list: bool = False
+) -> pd.DataFrame:
+    r"""
+    Args:
+        dataset: xtagger dataset List[List[Tuple[str, str]]]
+      
+        row_as_list: please look for docs
+    """
     df = pd.DataFrame(columns = ["sentence", "tags"])
     for sentence in dataset:
         d = {}
@@ -62,7 +105,38 @@ def xtagger_dataset_to_df(dataset, row_as_list=False):
         df = df.append(d,ignore_index=True)
     return df
 
-def df_to_torchtext_data(df_train, df_test, device, batch_size, min_freq = 2, pretrained_embeddings = False, transformers = False, tokenizer = None, model_name = "bert-base-cased"):
+def df_to_torchtext_data(
+        df_train: pd.DataFrame,
+        df_test: pd.DataFrame,
+        device: torch.device,
+        batch_size: int,
+        min_freq: int = 2,
+        pretrained_embeddings: bool = False,
+        transformers: bool = False,
+        tokenizer: Optional = None,
+        model_name: str = "bert-base-cased"
+):
+    r"""
+    Args:
+        df_train: the dataframe that comes from ``xtagger_dataset_to_df``
+
+        df_test: the dataframe that comes from ``xtagger_dataset_to_df``
+
+        device: torch.device
+
+        batch_size: batch size for iterator
+
+        min_freq: min frequency for word selection
+
+        pretrained_embeddings: if True, then glove vectors will be downloaded.
+                               not tested yet, so please do not use.
+
+        transformers: if the model is pretrained huggingface transformers model pass it true
+
+        tokenizer: if transformer true, pass the tokenizer
+
+        model_name: give the model name of tokenizer.
+    """
 
     df_train.to_csv("train.csv",index=False)
     df_test.to_csv("test.csv",index=False)
@@ -140,9 +214,6 @@ def df_to_torchtext_data(df_train, df_test, device, batch_size, min_freq = 2, pr
 
     print(f"Unique tokens in TEXT vocabulary: {len(TEXT.vocab)}")
     print(f"Unique tokens in TAGS vocabulary: {len(TAGS.vocab)}")
-
-    BATCH_SIZE = 32
-
 
     train_iterator, valid_iterator, test_iterator = data.BucketIterator.splits(
         (train_data, valid_data, test_data), 
