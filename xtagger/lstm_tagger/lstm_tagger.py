@@ -182,7 +182,7 @@ class LSTMForTagging(object):
 
     def evaluate(
             self,
-            test_set: ttext.iterator.BucketIterator = None,
+            test_set: Optional[ttext.iterator.BucketIterator] = None,
             eval_metrics: List[str] = ["acc"],
             result_type: str = "%"
     ) -> dict:
@@ -352,4 +352,8 @@ class LSTMForTagging(object):
         self.criterion = loss_fn(**args)
 
     def get_model_details(self):
-        return {"model": self.model, "optimizer": self.optimizer, "loss function": self.criterion}
+        return {
+            "model": self.model,
+            "optimizer": self.optimizer,
+            "loss function": self.criterion
+        }
