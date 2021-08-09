@@ -1,5 +1,6 @@
 import re
 import xtagger
+from typing import List, Optional, Tuple, Union
 
 def check_prior_tags(prior, model_tags):
     if prior == None:
@@ -25,7 +26,12 @@ def check_morphological_tags(morphological, model_tags):
         
 
 class EnglishRegExTagger(object):
-    def __init__(self, rules = None, use_default = True, mode = "morphological"):
+    def __init__(
+            self,
+            rules: Optional[List[Tuple[str, str]]] = None,
+            use_default: bool = True,
+            mode: bool = "morphological"
+    ):
         self._modes = ["morphological", "prior"]
         if mode not in self._modes:
             raise ValueError("Supporting only morphological or prior tagging for regex.")
