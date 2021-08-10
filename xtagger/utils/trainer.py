@@ -1,10 +1,60 @@
 import torch
 from xtagger.utils import metrics
+from xtagger.utils.callbacks import Checkpointing
 import torch.nn as nn
 from tqdm.auto import tqdm
+from typing import List, Optional, Union
+
+try:
+    import torchtext.legacy.data as ttext
+except ImportError:
+    import torchtext.data as ttext
 
 class PyTorchTagTrainer():
-    def __init__(self,model, optimizer, criterion, train_iterator, val_iterator, test_iterator, TEXT, TAGS, device, eval_metrics = ["acc"], checkpointing = None, result_type = "%"):
+    def __init__(
+            self,
+            model,
+            optimizer: torch.optim,
+            criterion: torch.nn,
+            train_iterator: ttext.iterator.BucketIterator,
+            val_iterator: ttext.iterator.BucketIterator,
+            test_iterator: ttext.iterator.BucketIterator,
+            TEXT: ttext.field.Field,
+            TAGS: ttext.field.Field,
+            device: torch.device,
+            eval_metrics: List[str] = ["acc"],
+            checkpointing: Optional[Checkpointing] = None,
+            result_type: str = "%"
+    ) -> None:
+        r"""
+        Args:
+            model: native pytorch model that is inherited from nn.Module
+
+            optimizer: an optimizer from torch.optim
+
+            criterion: a loss function from torch.nn
+
+            train_iterator: training set ``torchtext.data.iterator.BucketIterator``
+
+            val_iterator: validation set ``torchtext.data.iterator.BucketIterator``
+
+            test_iterator: test set ``torchtext.data.iterator.BucketIterator``
+                           if None given, test and val set become same
+
+            TEXT: the vocab with torchtext.data.field.Field
+
+            TAGS: the tag vocab with torchtext.data.field.Field
+
+            device: the pytorch device variable
+
+            eval_metrics: Current implemented eval metrics as string. Or a custom 
+                          metric that is inherited from ``xtagger.utils.metrics.xMetric``
+                          See docs for how to write custom metrics.
+
+            checkpointing: ``xtagger.utils.callbacks.Checkpointing`` object.
+
+            result_type: pass ``%`` for percentage, else decimal numbers.
+        """
         self.model = model
         self.optimizer = optimizer
         self.criterion = criterion
@@ -28,7 +78,7 @@ class PyTorchTagTrainer():
         if self.checkpointing != None and checkpointing.save_best == True:
             callbacks.check_monitor_eval_metrics(checkpointing.monitor, self.eval_metrics)
 
-    def train(self, epochs = 10):
+    def train(self, epochs: int = 10):
         total = len(self.train_iterator) * epochs
         batch_size = self.train_iterator.batch_size
         if next(iter(self.train_iterator)).sentence.size(0) != batch_size:
