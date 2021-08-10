@@ -50,7 +50,7 @@ class HiddenMarkovModel():
             raise ValueError("Higher than trigrams are not currently supported. Do you want to contribute?")
 
     def fit(self, train_set: List[List[Tuple[str, str]]], start_token: str = ".") -> None:
-         r"""
+        r"""
         Args:
             train_set: xtagger dataset that is expresend in docs.
    
