@@ -173,5 +173,5 @@ class PyTorchTagTrainer():
             self.TAGS.vocab.itos
         )
 
-        results["eval_loss"] = eval_loss
+        results["eval_loss"] = test_loss
         return results
