@@ -60,7 +60,7 @@ def deleted_interpolation(
         tags: str,
         train_tagged_words: List[Tuple[str, str]],
         t: tqdm
-)- > List[int]:
+) -> List[int]:
     lambdas = [0] * 3
     for i, tag1 in enumerate(list(tags)):
         for j, tag2 in enumerate(list(tags)):
