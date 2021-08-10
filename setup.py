@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 setup(
     name = "x-tagger",
     packages=find_packages(),
-    version = "0.1.4",
+    version = "0.1.5",
     license = "MIT",
     description = "A Natural Language Processing toolkit for token classification in its simplest form.",
     author = "Şafak Bilici",
