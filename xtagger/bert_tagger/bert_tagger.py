@@ -89,7 +89,7 @@ class BERTForTagging(object):
             self,
             train_set: ttext.iterator.BucketIterator,
             test_set: ttext.iterator.BucketIterator,
-            epochs = 10: int,
+            epochs: int = 10,
             eval_metrics: List[str] = ["acc"],
             result_type: str = "%",
             checkpointing: Optional[callbacks.Checkpointing] = None
