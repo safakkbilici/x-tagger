@@ -147,7 +147,7 @@ class BERTForTagging(object):
             eval_metrics: List[str] = ["acc"],
             result_type: str = "%"
     ) -> dict:
-         r"""
+        r"""
         Args:
             test_set: evaluation or test set ``torchtext.data.iterator.BucketIterator``
 
