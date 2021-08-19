@@ -188,8 +188,8 @@ class BERTForTagging(object):
                      
         test_preds_oh, test_gt_oh = metrics.tag2onehot(test_y_pred, test_y_true, self.TAGS.vocab.itos)
         results = metrics.metric_results(
-            test_gt_oh[1:],
-            test_preds_oh[1:],
+            test_gt_oh,
+            test_preds_oh,
             eval_metrics,
             result_type,
             self.TAGS.vocab.itos[1:]
