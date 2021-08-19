@@ -48,6 +48,7 @@ pip install git+https://github.com/safakkbilici/x-tagger
 - [BERT](https://github.com/safakkbilici/x-tagger/blob/main/examples/BERT.ipynb)
 - [Model Monitoring and Checkpointing](https://github.com/safakkbilici/x-tagger/blob/main/examples/Model%20Checkpointing.ipynb)
 - [x-tagger PyTorchTagWrapper](https://github.com/safakkbilici/x-tagger/blob/main/examples/x-tagger%20PyTorchTagWrapper.ipynb)
+- [Turkish Named Entity Recognition With LSTM](https://github.com/safakkbilici/x-tagger/blob/main/examples/Turkish%20Named%20Entity%20Recognition%20With%20LSTM.ipynb)
 
 
 ## Beautiful Carbon Example
