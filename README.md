@@ -21,7 +21,7 @@ So, what if you want a sequence labeling model but x-tagger does not have it? x-
 
 Remainder: x-tagger is currently in beta release and one-person project.
 
-## Getting started
+## Getting Started
 
 ### Installation
 
@@ -30,7 +30,7 @@ Remainder: x-tagger is currently in beta release and one-person project.
 ```bash
 pip install x-tagger
 ```
-- Built from source:
+- From source:
 
 ```bash
 pip install git+https://github.com/safakkbilici/x-tagger
