@@ -4,7 +4,7 @@
   <img src="assets/logo.png"/>
 </p>
 
-x-tagger is a Natural Language Processing toolkit for sequence labeling in its simplest form. It allows you to play with all kind of data: pandas dataframe, nltk tagged corpus, .txt, torchtext iterator and 🤗 datasets. Due to its data transformations, abstraction and wrapper, you can train almost any kind of sequence labeling model. 
+x-tagger is a Natural Language Processing toolkit for sequence labeling in its simplest form. x-tagger helps basic sequence labeling tasks like part-of-speech tagging and named entity recognition. With its pure Hidden Markov Model implementation, it also provides neural PyTorch models with highest level abstraction. Besides, it allows you to play with all kind of data: pandas dataframe, nltk tagged corpus, .txt, torchtext iterator and 🤗 datasets. Due to its data transformations, abstraction and wrapper, you can train almost any kind of sequence labeling model. 
 
 x-tagger has built-in models like Hidden Markov Models (bigram, trigram, deleted interpolation, morphological analyzer, prior support), Long Short-Term Memory (unidirectional, bidirectional) and BERT. While you can train and inference those models with ```.fit()```, x-tagger serves nearly 8 different built-in metrics as well. Besides, if one might want to write custom metrics, x-tagger serves a base class for all kind of metrics!
 
