@@ -1,5 +1,4 @@
 import transformers
-import datasets as hfd
 import pickle
 import pandas as pd
 import torch
@@ -225,38 +224,38 @@ def df_to_torchtext_data(
 
     return train_iterator, valid_iterator, test_iterator, TEXT, TAGS
 
-def tokenize_and_align_labels(examples, tokenizer, tags, label_all_tokens):
-    tokenized_inputs = tokenizer(examples["sentence"], truncation=True, is_split_into_words=True)
-    labels = []
-    for i, label in enumerate(examples[f"tags"]):
-        word_ids = tokenized_inputs.word_ids(batch_index=i)
-        previous_word_idx = None
-        label_ids = []
-        for word_idx in word_ids:
-            if word_idx is None:
-                label_ids.append(-100)
-            elif word_idx != previous_word_idx:
-                idx = tags.index(label[word_idx])
-                label_ids.append(idx)
-            else:
-                idx = tags.index(label[word_idx])
-                label_ids.append(idx if label_all_tokens else -100)
-            previous_word_idx = word_idx
+# def tokenize_and_align_labels(examples, tokenizer, tags, label_all_tokens):
+#     tokenized_inputs = tokenizer(examples["sentence"], truncation=True, is_split_into_words=True)
+#     labels = []
+#     for i, label in enumerate(examples[f"tags"]):
+#         word_ids = tokenized_inputs.word_ids(batch_index=i)
+#         previous_word_idx = None
+#         label_ids = []
+#         for word_idx in word_ids:
+#             if word_idx is None:
+#                 label_ids.append(-100)
+#             elif word_idx != previous_word_idx:
+#                 idx = tags.index(label[word_idx])
+#                 label_ids.append(idx)
+#             else:
+#                 idx = tags.index(label[word_idx])
+#                 label_ids.append(idx if label_all_tokens else -100)
+#             previous_word_idx = word_idx
 
-        labels.append(label_ids)
+#         labels.append(label_ids)
 
-    tokenized_inputs["labels"] = labels
-    return tokenized_inputs
+#     tokenized_inputs["labels"] = labels
+#     return tokenized_inputs
 
-def df_to_hf_dataset(df, tags, tokenizer, device, label_all_tokens=True):
-    dataset = hfd.Dataset.from_pandas(df)
-    dataset = dataset.map(
-        tokenize_and_align_labels,
-        fn_kwargs = {
-            'tokenizer': tokenizer,
-            'tags': tags,
-            'label_all_tokens': label_all_tokens
-        },
-        batched = True
-    )
-    return dataset
+# def df_to_hf_dataset(df, tags, tokenizer, device, label_all_tokens=True):
+#     dataset = hfd.Dataset.from_pandas(df)
+#     dataset = dataset.map(
+#         tokenize_and_align_labels,
+#         fn_kwargs = {
+#             'tokenizer': tokenizer,
+#             'tags': tags,
+#             'label_all_tokens': label_all_tokens
+#         },
+#         batched = True
+#     )
+#     return dataset
