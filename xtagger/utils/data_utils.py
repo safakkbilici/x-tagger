@@ -1,4 +1,3 @@
-import transformers
 import pickle
 import pandas as pd
 import torch
@@ -113,7 +112,8 @@ def df_to_torchtext_data(
         pretrained_embeddings: bool = False,
         transformers: bool = False,
         tokenizer: Optional = None,
-        model_name: str = "bert-base-cased"
+        model_name: str = "bert-base-cased",
+        df_val = None
 ):
     r"""
     Args:
@@ -139,6 +139,8 @@ def df_to_torchtext_data(
 
     df_train.to_csv("train.csv",index=False)
     df_test.to_csv("test.csv",index=False)
+    if df_val != None:
+        df_val.to_csv("val.csv")
     
     if transformers:
         max_len = tokenizer.max_model_input_sizes[model_name]
@@ -183,7 +185,7 @@ def df_to_torchtext_data(
         path = '.',
         train = 'train.csv',
         test = 'test.csv',
-        validation = 'test.csv',
+        validation = 'test.csv' if df_val==None else "val.csv",
         format = 'csv',
         fields = fields,
         skip_header = True
