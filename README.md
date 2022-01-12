@@ -1,6 +1,7 @@
 # x-tagger: A Natural Language Processing Toolkit for Sequence Labeling in Its Simplest Form.
 
 [![Downloads](https://static.pepy.tech/personalized-badge/x-tagger?period=total&units=international_system&left_color=black&right_color=orange&left_text=Downloads)](https://pepy.tech/project/x-tagger)
+[![PyPI version](https://badge.fury.io/py/x-tagger.svg)](https://badge.fury.io/py/x-tagger)
 
 <p align="center">
   <img src="assets/logo.png"/>
