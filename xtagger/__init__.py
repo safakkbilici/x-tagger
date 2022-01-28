@@ -1,3 +1,7 @@
+__version__ = "0.1.5"
+__author__ = "Safak Bilici"
+__license__ = "MIT"
+
 from xtagger.hmm_tagger.hmm import HiddenMarkovModel
 from xtagger.lstm_tagger.lstm_tagger import LSTMForTagging
 from xtagger.bert_tagger.bert_tagger import BERTForTagging
@@ -6,7 +10,6 @@ from xtagger.utils.data_utils import (
     save_as_pickle,
     xtagger_dataset_to_df,
     df_to_torchtext_data,
-    df_to_hf_dataset,
     text_to_xtagger_dataset
 )
     
@@ -15,6 +18,8 @@ from xtagger.utils.metrics import xMetrics
 from xtagger.utils.callbacks import Checkpointing
 from xtagger.utils.trainer import PyTorchTagTrainer
 
+#from xtagger.utils import metrics
+#import xtagger.utils.metrics
 
 
 IMPLEMENTED_REGEX_LANGUAGES = [
@@ -46,4 +51,4 @@ MONITOR = [
     "eval_avg_f1",
     "eval_avg_precision",
     "eval_avg_recall",
-    ]
+]
