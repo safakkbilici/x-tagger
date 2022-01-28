@@ -1,5 +1,8 @@
 # x-tagger: A Natural Language Processing Toolkit for Sequence Labeling in Its Simplest Form.
 
+[![Downloads](https://static.pepy.tech/personalized-badge/x-tagger?period=total&units=international_system&left_color=black&right_color=orange&left_text=Downloads)](https://pepy.tech/project/x-tagger)
+[![PyPI version](https://badge.fury.io/py/x-tagger.svg)](https://badge.fury.io/py/x-tagger)
+
 <p align="center">
   <img src="assets/logo.png"/>
 </p>
@@ -45,7 +48,7 @@ pip install git+https://github.com/safakkbilici/x-tagger
 - [Morphological and Prior Support](https://github.com/safakkbilici/x-tagger/blob/main/examples/Morphological%20and%20Prior%20Support.ipynb)
 - [Writing Custom Metrics (Matthews Correlation Coefficient)](https://github.com/safakkbilici/x-tagger/blob/main/examples/Writing%20Custom%20Metrics%20(Matthews%20Correlation%20Coefficient).ipynb)
 - [Long Short-Term Memory](https://github.com/safakkbilici/x-tagger/blob/main/examples/Long%20Short-Term%20Memory.ipynb)
-- [BERT](https://github.com/safakkbilici/x-tagger/blob/main/examples/BERT.ipynb)
+- [BERT](https://github.com/safakkbilici/x-tagger/blob/main/examples/Sequence%20Labeling:%20Pretrained%20BERT.ipynb)
 - [Model Monitoring and Checkpointing](https://github.com/safakkbilici/x-tagger/blob/main/examples/Model%20Checkpointing.ipynb)
 - [x-tagger PyTorchTagWrapper](https://github.com/safakkbilici/x-tagger/blob/main/examples/x-tagger%20PyTorchTagWrapper.ipynb)
 - [Turkish Named Entity Recognition With LSTM](https://github.com/safakkbilici/x-tagger/blob/main/examples/Turkish%20Named%20Entity%20Recognition%20With%20LSTM.ipynb)
