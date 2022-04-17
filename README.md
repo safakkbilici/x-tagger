@@ -15,13 +15,6 @@ For gradient based models, we provide a model monitoring and checkpointing class
 
 So, what if you want a sequence labeling model but x-tagger does not have it? x-tagger provides a PyTorch Sequence Labeling Wrapper module for your model. Once you have wrote your custom PyTorch model, PyTorchTagTrainer module does everything else!
 
-* There are upcoming features soon:
-  * Bidirectional Hidden Markov Models.
-  * Maximum Entropy Markov Models (MEMM).
-  * Beam search.
-  * LSTM-CNN, LSTM-CRF
-  * Wrapper for PyTorch models in general.
-
 Remainder: x-tagger is currently in beta release and one-person project.
 
 ## Getting Started
