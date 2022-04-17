@@ -45,6 +45,7 @@ class HiddenMarkovModel():
         self._extend_to = extend_to
         self._morphological = morphological
         self._prior = prior
+        self.language = language
         self._extended = ["bigram", "trigram","deleted_interpolation"]
         if self._extend_to not in self._extended:
             raise ValueError("Higher than trigrams are not currently supported. Do you want to contribute?")
@@ -264,8 +265,7 @@ class HiddenMarkovModel():
         self._test_set = test_set
 
     def __repr__(self):
-        return f"HiddenMarkovModel(extend_to={self._extend_to},start_token={self._start_token}, language={self.language})"+\
-            "\nTags: {self._tags}"
+        return f"HiddenMarkovModel(extend_to={self._extend_to}, language={self.language})"
 
     def get_tags(self):
         return self._tags
