@@ -17,6 +17,8 @@ So, what if you want a sequence labeling model but x-tagger does not have it? x-
 
 Remainder: x-tagger is currently in beta release and one-person project.
 
+Update: I am planning to release new version of this library to expand and separate from torchtext.
+
 ## Getting Started
 
 ### Installation
