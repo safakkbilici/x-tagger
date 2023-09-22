@@ -1,6 +1,6 @@
 import os
 
-from typing import List, Union, Callable
+from typing import List, Union, Callable, Optional
 
 from xtagger.tokenization.base import TokenizerBase
 from xtagger.utils.helpers import readfile, save_pickle, load_pickle
@@ -25,7 +25,7 @@ class WhiteSpaceTokenizer(TokenizerBase):
         self.pad_token_id = self.vocab[self.pad_token]
 
     def build_vocab(self):
-        vocab = {t: tid for t, tid in enumerate(self.special_tokens)}
+        vocab = {t: tid for tid, t in enumerate(self.special_tokens)}
         return vocab
 
     def fit(self, data: str, pretokenizer: Callable = lambda x: x.split()) -> None:
@@ -65,16 +65,22 @@ class WhiteSpaceTokenizer(TokenizerBase):
             if max_length != None:
                 if len(encoded_sequence) >= max_length:
                     encoded_sequence = encoded_sequence[: max_length - 1]
+                    encoded_sequence.append(self.end_token_id)
                 else:
+                    encoded_sequence.append(self.end_token_id)
                     encoded_sequence.extend(
-                        [self.pad_token_id for _ in range(len(encoded_sequence), max_len)]
+                        [self.pad_token_id for _ in range(len(encoded_sequence), max_length)]
                     )
 
-            encoded_sequence.append(self.end_token_id)
+            else:
+                encoded_sequence.append(self.end_token_id)
+
             encoded.append(encoded_sequence)
 
+        return encoded
+
     def decode(
-        self, input_ids: Union[int, List[int]], remove_special_tokens: bool
+        self, input_ids: Union[int, List[int]], remove_special_tokens: bool=True
     ) -> Union[str, List[str]]:
         if type(input_ids[0]) == int:
             input_ids = [input_ids]
@@ -82,8 +88,8 @@ class WhiteSpaceTokenizer(TokenizerBase):
         decoded = []
         for sequence in input_ids:
             decoded_sequence = []
-            for tid in input_ids:
-                decoded.append(self.i2w[tid])
+            for tid in sequence:
+                decoded_sequence.append(self.i2w[tid])
 
             decoded.append(decoded_sequence)
 
@@ -93,7 +99,7 @@ class WhiteSpaceTokenizer(TokenizerBase):
         return decoded
 
     def remove_special_tokens(self, tokens: List[str]) -> List[str]:
-        return list(lambda x: x not in self.special_tokens, filter(tokens))
+        return list(filter(lambda x: x not in self.special_tokens, tokens))
 
     def add_tokens(self, token: Union[str, List[str]]) -> None:
         if type(token) == str:
@@ -114,7 +120,7 @@ class WhiteSpaceTokenizer(TokenizerBase):
             return self.i2w[item]
 
     def save(self, path: str, name: str) -> None:
-        save_pickle(self, os.path.join(path, name))
+        save_pickle(self, os.path.join(path, name + ".tokenizer"))
 
     @staticmethod
     def load(path: str, name: str) -> "WhiteSpaceTokenizer":
