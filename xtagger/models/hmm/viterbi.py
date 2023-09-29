@@ -35,7 +35,7 @@ class Viterbi:
     # normally, it is easy to extend it to n-gram
     # but in practice we try not to use n-grams higher than fourgram
     # the asymptotic computational of >4 is high
-    def decode_bigram(self) -> List[List[str, float]]:
+    def decode_bigram(self) -> List[List[Tuple[str, float]]]:
         state = []
         T = list(set([pair[1] for pair in self._train_set]))
         for key, word in enumerate(
@@ -83,7 +83,7 @@ class Viterbi:
 
         return list(zip(self._words, state))
 
-    def decode_trigram(self) -> List[List[str, float]]:
+    def decode_trigram(self) -> List[List[Tuple[str, float]]]:
         state = []
         T = list(set([pair[1] for pair in self._train_set]))
         with tqdm(
