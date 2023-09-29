@@ -1,6 +1,6 @@
 import os
 
-from typing import List, Union, Callable, Optional
+from typing import List, Union, Callable, Optional, Tuple, Dict
 
 from xtagger.tokenization.base import TokenizerBase
 from xtagger.utils.helpers import readfile, save_pickle, load_pickle
@@ -28,11 +28,20 @@ class WhiteSpaceTokenizer(TokenizerBase):
         vocab = {t: tid for tid, t in enumerate(self.special_tokens)}
         return vocab
 
-    def fit(self, data: str, pretokenizer: Callable = lambda x: x.split()) -> None:
+    def fit(
+        self,
+        data: Union[str, List[List[Tuple[str, str]]]],
+        pretokenizer: Callable = lambda x: x.split(),
+    ) -> None:
+        
         cid = self.vocab_size
-
         if os.path.isfile(data):
             data = readfile(data)
+ 
+        elif type(data) != str:
+            data = [[token[0] for token in sample] for sample in data]
+            data = [item for sublist in data for item in sublist]
+            data = " ".join(data)
 
         data = pretokenizer(data)
         for token in data:
@@ -46,21 +55,30 @@ class WhiteSpaceTokenizer(TokenizerBase):
 
     def encode(
         self,
-        sentence: Union[str, List[str]],
+        sentence: Union[List[str], List[List[str]]],
         max_length: Optional[int],
-        pretokenizer: Callable = lambda x: x.split(),
-    ) -> Union[List[int], List[List[int]]]:
-        sequence_length = 2
+        pretokenizer: Callable = lambda x: x,
+        **kwargs
+    ) -> Dict[str, Union[List[int], List[List[int]]]]:
         encoded = []
-        if type(sentence) == str:
-            sentence = [sentence]
+        sequence_word_ids = []
 
+        if type(sentence[0]) == str:
+            sentence = [sentence]
+            
         for sequence in sentence:
-            sequence = pretokenizer(sequence)
             encoded_sequence = []
-            for token in sequence:
-                tid = self.vocab.get(token, self.unk_token_id)
-                encoded_sequence.append(tid)
+            word_ids = []
+            for wid, token in enumerate(sequence):
+                token = pretokenizer(token)
+                if type(token) == str: 
+                    tid = self.vocab.get(token, self.unk_token_id)
+                    encoded_sequence.append(tid)
+                    word_ids.append(wid)
+                else:
+                    tid = [self.vocab.get(t, self.unk_token_id) for t in token]
+                    encoded_sequence.extend(tid)
+                    word_ids.extend([wid for _ in tid])
 
             if max_length != None:
                 if len(encoded_sequence) >= max_length:
@@ -76,11 +94,12 @@ class WhiteSpaceTokenizer(TokenizerBase):
                 encoded_sequence.append(self.end_token_id)
 
             encoded.append(encoded_sequence)
+            sequence_word_ids.append(word_ids)
 
-        return encoded
+        return {"input_ids": encoded, "word_ids": sequence_word_ids}
 
     def decode(
-        self, input_ids: Union[int, List[int]], remove_special_tokens: bool=True
+        self, input_ids: Union[int, List[int]], remove_special_tokens: bool = True
     ) -> Union[str, List[str]]:
         if type(input_ids[0]) == int:
             input_ids = [input_ids]
