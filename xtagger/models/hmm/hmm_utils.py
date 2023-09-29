@@ -3,12 +3,6 @@ from typing import List, Tuple
 import numpy as np
 from tqdm.auto import tqdm
 
-r"""
-This file contails helper functions for calculating transition,
-emission and other probability matrices. We are documenting the types of
-arguments and returned variables for contributors.
-"""
-
 
 def get_emission(word: str, tag: str, train_bag: List[Tuple[str, str]]) -> Tuple[int, int]:
     tag_list = [pair for pair in train_bag if pair[1] == tag]
