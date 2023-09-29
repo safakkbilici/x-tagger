@@ -1,8 +1,9 @@
 from typing import List, Optional, Tuple
 
 import numpy as np
+import xtagger
 from tqdm.auto import tqdm
-from xtagger.models.hmm.hmm_utils import get_emission, get_transition
+from xtagger.models.hmm.hmm_utils import get_emission
 from xtagger.utils.regex import EnglishRegExTagger
 
 
@@ -16,7 +17,7 @@ class Viterbi:
         morphological: Optional[EnglishRegExTagger] = None,
         prior: Optional[EnglishRegExTagger] = None,
         indexing: List[str] = ["."],
-    ):
+    ) -> None:
         """
         decodes maximum probabilities at evaluation and inference time
         with dynamic viterbi decoder.
@@ -34,10 +35,12 @@ class Viterbi:
     # normally, it is easy to extend it to n-gram
     # but in practice we try not to use n-grams higher than fourgram
     # the asymptotic computational of >4 is high
-    def decode_bigram(self):
+    def decode_bigram(self) -> List[List[str, float]]:
         state = []
         T = list(set([pair[1] for pair in self._train_set]))
-        for key, word in enumerate(tqdm(self._words)):
+        for key, word in enumerate(
+            tqdm(self._words, desc="Bigram decoding", disable=xtagger.DISABLE_PROGRESS_BAR)
+        ):
             p = []
 
             if self._prior != None:
@@ -80,10 +83,14 @@ class Viterbi:
 
         return list(zip(self._words, state))
 
-    def decode_trigram(self):
+    def decode_trigram(self) -> List[List[str, float]]:
         state = []
         T = list(set([pair[1] for pair in self._train_set]))
-        with tqdm(total=len(self._words) * len(T) * len(T)) as t:
+        with tqdm(
+            total=len(self._words) * len(T) * len(T),
+            desc="Trigram decoding",
+            disable=xtagger.DISABLE_PROGRESS_BAR,
+        ) as progressbar:
             for key, word in enumerate(self._words):
                 p1 = []
                 p2 = []
@@ -117,13 +124,14 @@ class Viterbi:
                             tag1_idx = self._indexing.index(tag1)
                             tag2_idx = self._indexing.index(tag2)
                             transition_p = self._tag2tag_matrix[pre_state_idx, tag1_idx, tag2_idx]
-                        t.update()
 
                         # emission probabilities
                         p_tiwi, pti = get_emission(self._words[key], tag2, self._train_set)
                         emission_p = p_tiwi / pti
                         state_probability = emission_p * transition_p
                         p1.append(state_probability)
+
+                        progressbar.update()
 
                     pmax_inner = max(p1)  # max for tag2_i
                     p2.append(pmax_inner)
