@@ -26,7 +26,7 @@ class BaseMetric:
         pass
 
 
-class MultiClassF1(BaseMetric):
+class ClasswiseF1(BaseMetric):
     mode: str = "classwise_f1"
 
     def __init__(
@@ -45,7 +45,7 @@ class MultiClassF1(BaseMetric):
         return f1s
 
 
-class MultiClassRecall(BaseMetric):
+class ClasswiseRecall(BaseMetric):
     mode: str = "multiclass_f1"
 
     def __init__(
@@ -64,7 +64,7 @@ class MultiClassRecall(BaseMetric):
         return recalls
 
 
-class MultiClassPrecision(BaseMetric):
+class ClasswisePrecision(BaseMetric):
     mode: str = "multiclass_precision"
 
     def __init__(
@@ -129,7 +129,7 @@ class F1(BaseMetric):
 
 
 class Accuracy(BaseMetric):
-    mode: str = "accruacy"
+    mode: str = "accuracy"
 
     def __init__(
         self, y_true: List[float], y_pred: List[float], tags: List[str] | None = None
@@ -139,3 +139,13 @@ class Accuracy(BaseMetric):
     def __call__(self) -> float:
         acc = accuracy_score(self.y_true, self.y_pred)
         return acc
+    
+
+class ClassificationReport(BaseMetric):
+    mode: str = "classification_report"
+
+    def __init__(self, y_true: List[float], y_pred: List[float], tags: List[str] | None = None) -> None:
+        super().__init__(y_true, y_pred, tags)
+
+    def __call__(self) -> None:
+        print(classification_report(self.y_true, self.y_pred, target_names=self.tags))
