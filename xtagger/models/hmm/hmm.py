@@ -1,3 +1,4 @@
+import os
 import random
 from typing import List, Optional, Tuple
 
@@ -8,6 +9,7 @@ from xtagger.callbacks import metrics, metrics_
 from xtagger.models.hmm.hmm_utils import deleted_interpolation, get_transition, get_transition_2
 from xtagger.models.hmm.viterbi import Viterbi
 from xtagger.utils.regex import EnglishRegExTagger
+from xtagger.utils.helpers import save_pickle, load_pickle
 from xtagger.utils.validations import (
     validate_eval_metrics,
     validate_morphological_tags,
@@ -224,3 +226,10 @@ class HiddenMarkovModel:
                         progressbar.update()
 
         print(f"λ1: {lambdas[0]}, λ2: {lambdas[1]}, λ3: {lambdas[2]}")
+
+    def save(self, path: str, name: str) -> None:
+        save_pickle(self, os.path.join(path, name + ".model"))
+
+    @staticmethod
+    def load(path: str, name: str) -> "HiddenMarkovModel":
+        return load_pickle(os.path.join(path, name))
