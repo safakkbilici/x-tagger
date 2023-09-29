@@ -108,7 +108,7 @@ class HiddenMarkovModel:
             indexing=self._indexing,
         )
 
-        if self._extend_to == "bigram":
+        if self._hmm == "bigram":
             tagged_seq = viterbi_decoder.decode_bigram()
         else:
             tagged_seq = viterbi_decoder.decode_trigram()
@@ -127,17 +127,17 @@ class HiddenMarkovModel:
             words=words,
             tag2tag_matrix=self._tag2tag_matrix,
             train_set=self._train_tagged_words,
-            start=self._start_token,
+            start=self._pad_token,
             morphological=self._morphological if morphological else None,
             prior=self._prior if prior else None,
             indexing=self._indexing,
         )
 
         if self._hmm == "bigram":
-            tagged_seq = viterbi_decoder.fit_bigram()
-
+            tagged_seq = viterbi_decoder.decode_bigram()
         else:
-            tagged_seq = viterbi_decoder.fit_trigram()
+            tagged_seq = viterbi_decoder.decode_trigram()
+
         return tagged_seq
 
     def __fit_bigram(self):
