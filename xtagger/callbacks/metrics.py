@@ -4,7 +4,7 @@ import numpy as np
 from xtagger.callbacks.metrics_ import *
 
 
-def tag2onehot(preds: List[str], ground_truth: List[str], tags: List[str]):
+def convert_to_onehot(preds: List[str], ground_truth: List[str], tags: List[str]):
     digit_pred = np.array([tags.index(tag) for tag in preds])
     digit_gt = np.array([tags.index(tag) for tag in ground_truth])
 
@@ -18,13 +18,13 @@ def tag2onehot(preds: List[str], ground_truth: List[str], tags: List[str]):
 
 
 def metric_results(
-    gt: Union[np.ndarray, List[List[int]]],
-    preds: Union[np.ndarray, List[List[int]]],
-    eval_metrics: List[str],
+    y_true: Union[np.ndarray, List[List[int]]],
+    y_pred: Union[np.ndarray, List[List[int]]],
+    eval_metrics: List[BaseMetric],
     tags: List[str],
-) -> Dict[str, float | Dict[float]]:
+) -> Dict[str, Dict[str, float]]:
     results = {}
 
     for metric in eval_metrics:
-        results[metric.mode] = metric(gt, preds, tags)()
+        results[metric.mode] = metric(y_true, y_pred, tags)()
     return results
