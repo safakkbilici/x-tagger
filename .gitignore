@@ -1,4 +1,5 @@
 .pkl
 .ipynb
 .txt
+.tokenizer
 __pycache__
