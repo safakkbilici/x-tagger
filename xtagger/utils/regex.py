@@ -2,27 +2,7 @@ import re
 import xtagger
 from typing import List, Optional, Tuple, Union
 
-def check_prior_tags(prior, model_tags):
-    if prior == None:
-        return
-    elif type(prior) not in xtagger.IMPLEMENTED_REGEX_LANGUAGES:
-        raise TypeError(f"The tagger must be [Language]RegExTagger, current implemented languages: {xtagger.IMPLEMENTED_REGEX_LANGUAGES}")
-    else:
-        prior_tags = [pair[1] for pair in prior.get_patterns()]
-        for tag in prior_tags:
-            if tag not in model_tags:
-                raise ValueError("Passing different tags from training set is ambigious.")
 
-def check_morphological_tags(morphological, model_tags):
-    if morphological == None:
-        return
-    elif type(morphological) not in xtagger.IMPLEMENTED_REGEX_LANGUAGES:
-        raise TypeError(f"The tagger must be [Language]RegExTagger, current implemented languages: {xtagger.IMPLEMENTED_REGEX_LANGUAGES}")
-    else:
-        morphological_tags = [pair[1] for pair in morphological.get_patterns()]
-        for tag in morphological_tags:
-            if tag not in model_tags:
-                raise ValueError("Passing different tags from training set is ambigious.")
         
 
 class EnglishRegExTagger(object):
