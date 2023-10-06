@@ -2,53 +2,35 @@ __version__ = "0.1.5"
 __author__ = "Safak Bilici"
 __license__ = "MIT"
 
-from xtagger.hmm_tagger.hmm import HiddenMarkovModel
-from xtagger.lstm_tagger.lstm_tagger import LSTMForTagging
-from xtagger.bert_tagger.bert_tagger import BERTForTagging
-from xtagger.utils.data_utils import (
-    df_to_xtagger_dataset,
-    save_as_pickle,
-    xtagger_dataset_to_df,
-    df_to_torchtext_data,
-    text_to_xtagger_dataset
+DISABLE_PROGRESS_BAR = False
+GLOBAL_INDENT = 4
+
+from xtagger.callbacks.metrics_ import *
+from xtagger.callbacks.metrics_ import BaseMetric
+from xtagger.models.hmm.hmm import HiddenMarkovModel
+from xtagger.models.rnn.rnn import RNNTagger
+from xtagger.utils.data import (
+    Sampler,
+    convert_from_dataframe,
+    convert_from_file,
+    convert_to_dataloader,
 )
-    
 from xtagger.utils.regex import EnglishRegExTagger
-from xtagger.utils.metrics import xMetrics
-from xtagger.utils.callbacks import Checkpointing
-from xtagger.utils.trainer import PyTorchTagTrainer
+from xtagger.tokenization.whitespace import WhiteSpaceTokenizer
+from xtagger.utils.data import LabelEncoder
 
-#from xtagger.utils import metrics
-#import xtagger.utils.metrics
-
+IMPLEMENTED_METRICS = [
+    F1,
+    Precision,
+    Recall,
+    Accuracy,
+    ClasswiseF1,
+    ClasswisePrecision,
+    ClasswiseRecall,
+    ClassificationReport,
+    BaseMetric,
+]
 
 IMPLEMENTED_REGEX_LANGUAGES = [
     EnglishRegExTagger,
-]
-
-IMPLEMENTED_METRICS = [
-    "avg_f1",
-    "avg_precision",
-    "avg_recall",
-    "acc",
-    "classwise_f1",
-    "classwise_precision",
-    "classwise_recall",
-    "report",
-    "eval_loss",
-    "train_loss",
-    xMetrics
-]
-
-MONITOR = [
-    "train_loss",
-    "train_acc",
-    "train_avg_f1",
-    "train_avg_precision",
-    "train_avg_recall",
-    "eval_loss",
-    "eval_acc",
-    "eval_avg_f1",
-    "eval_avg_precision",
-    "eval_avg_recall",
 ]
