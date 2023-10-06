@@ -35,11 +35,11 @@ class WhiteSpaceTokenizer(TokenizerBase):
     ) -> None:
         
         cid = self.vocab_size
-        if os.path.isfile(data):
+        if type(data) == str and os.path.isfile(data):
             data = readfile(data)
  
         elif type(data) != str:
-            data = [[token[0] for token in sample] for sample in data]
+            data = [[pair[0] for pair in sample] for sample in data]
             data = [item for sublist in data for item in sublist]
             data = " ".join(data)
 
@@ -81,17 +81,18 @@ class WhiteSpaceTokenizer(TokenizerBase):
                     word_ids.extend([wid for _ in tid])
 
             if max_length != None:
-                if len(encoded_sequence) >= max_length:
-                    encoded_sequence = encoded_sequence[: max_length - 1]
-                    encoded_sequence.append(self.end_token_id)
+                if len(encoded_sequence) > (max_length - 2):
+                    encoded_sequence = encoded_sequence[: max_length - 2]
+                    word_ids = word_ids[: max_length - 2]
+                    encoded_sequence = self.__insert_special_tokens(encoded_sequence)
                 else:
-                    encoded_sequence.append(self.end_token_id)
+                    encoded_sequence = self.__insert_special_tokens(encoded_sequence)
                     encoded_sequence.extend(
                         [self.pad_token_id for _ in range(len(encoded_sequence), max_length)]
                     )
 
             else:
-                encoded_sequence.append(self.end_token_id)
+                encoded_sequence = self.__insert_special_tokens(encoded_sequence)
 
             encoded.append(encoded_sequence)
             sequence_word_ids.append(word_ids)
@@ -131,6 +132,11 @@ class WhiteSpaceTokenizer(TokenizerBase):
                 self.i2w[cid] = t
 
         self.vocab_size = len(self.vocab)
+
+    def __insert_special_tokens(self, encoded: List[int]) -> List[int]:
+        encoded.insert(0, self.start_token_id)
+        encoded.append(self.end_token_id)
+        return encoded
 
     def __getitem__(self, item: Union[str, int]) -> Union[str, int]:
         if type(item) == str:
