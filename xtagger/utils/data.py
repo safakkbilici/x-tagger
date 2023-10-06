@@ -1,6 +1,6 @@
 import os
-import pickle
 from typing import Callable, List, Tuple, Union
+from collections import Counter
 
 import pandas as pd
 import torch
@@ -8,7 +8,7 @@ import xtagger
 from torch.utils.data import Dataset, DataLoader
 from tqdm.auto import tqdm
 from xtagger.tokenization.base import TokenizerBase
-from xtagger.utils.helpers import load_pickle, save_pickle
+from xtagger.utils.helpers import load_pickle, save_pickle, flatten_list
 
 
 class LabelEncoder:
@@ -21,8 +21,8 @@ class LabelEncoder:
         self.pad_tag_id = len(self.maps)
 
     def __fit(self):
-        tags = [[token[0] for token in sample] for sample in self.dataset]
-        tags = {item for sublist in self.dataset for item in sublist}
+        tags = [[pair[1] for pair in sample] for sample in self.dataset]
+        tags = {item for sublist in tags for item in sublist}
         reverse_maps = dict(enumerate(tags))
         return reverse_maps
 
@@ -63,12 +63,47 @@ class Sampler(Dataset):
         sample = self.dataset[idx]
         sentence = [pair[0] for pair in sample]
         tags = [self.label_encoder[pair[1]] for pair in sample]
+
         encoded = self.tokenizer.encode(
             sentence=sentence, max_length=self.max_length, pretokenizer=self.pretokenizer
         )
-        labels = [item for item, count in zip(tags, encoded["word_ids"]) for _ in range(count)]
+        word_ids = encoded["word_ids"][0]
+        input_ids = encoded["input_ids"][0]
 
-        return {"input_ids": torch.Tensor(encoded["input_ids"]), "labels": torch.Tensor(labels)}
+        labels = align_labels(
+            tokenizer=self.tokenizer,
+            label_encoder=self.label_encoder,
+            tags=tags,
+            word_ids=word_ids,
+            input_ids=input_ids,
+        )
+
+        assert len(input_ids) == len(
+            labels
+        ), f"Mismatch between tokens and token labels {len(input_ids)} and {len(labels)}"
+
+        return {"input_ids": torch.Tensor(input_ids), "labels": torch.Tensor(labels)}
+
+
+def align_labels(
+    tokenizer: TokenizerBase,
+    label_encoder: LabelEncoder,
+    tags: List[int],
+    word_ids: List[int],
+    input_ids: List[int],
+) -> List[int]:
+    labels = [label_encoder.pad_tag_id]
+    word_ids = Counter(word_ids)
+    
+    tags_repeat = [[t] * word_ids[tidx] for tidx, t in enumerate(tags)]
+    tags_repeat = flatten_list(tags_repeat)
+    labels.extend(tags_repeat)
+    labels.append(label_encoder.pad_tag_id)
+
+    pad_length = sum([1 for i in input_ids if i == tokenizer.pad_token_id])
+    labels.extend([label_encoder.pad_tag_id for _ in range(pad_length)])
+
+    return labels
 
 
 def convert_from_dataframe(df: pd.DataFrame) -> List[List[Tuple[str, str]]]:
@@ -122,7 +157,7 @@ def convert_to_dataloader(
         tokenizer=tokenizer,
         label_encoder=label_encoder,
         max_length=max_length,
-        pretokenizer=pretokenizer
+        pretokenizer=pretokenizer,
     )
 
     dataloader = DataLoader(sampler, batch_size=batch_size, shuffle=shuffle)
