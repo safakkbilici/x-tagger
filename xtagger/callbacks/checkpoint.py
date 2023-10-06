@@ -25,16 +25,16 @@ class Checkpointing:
         else:
             self.f = min
 
-    def save(self, model: torch.Module, to: str):
+    def save(self, model: torch.nn.Module, to: str):
         torch.save(model.state_dict(), to)
 
     @staticmethod
-    def load(model: torch.Module, to: str):
+    def load(model: torch.nn.Module, to: str):
         model.load_state_dict(torch.load(to))
         return model
 
     def __call__(
-        self, model: torch.Module, results: dict, path: str, name: str, indicator_name: str = ""
+        self, model: torch.nn.Module, results: dict, path: str, name: str, indicator_name: str = ""
     ) -> None:
         base_metric = self.on
         if "." in self.on:
