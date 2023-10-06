@@ -1,5 +1,7 @@
+import os
+
 from collections import defaultdict
-from typing import Callable, List, Optional, Tuple, Union
+from typing import Callable, List, Optional, Tuple, Union, Any, Dict
 
 import torch
 import torch.nn as nn
@@ -7,7 +9,7 @@ import xtagger
 from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
 from xtagger.callbacks.checkpoint import Checkpointing
-from xtagger.callbacks.metrics import convert_to_onehot, metric_results
+from xtagger.callbacks.metrics import metric_results, write_results
 from xtagger.callbacks.metrics_ import Accuracy, BaseMetric
 from xtagger.tokenization.base import TokenizerBase
 from xtagger.utils.data import LabelEncoder, convert_to_dataloader
@@ -65,16 +67,19 @@ class RNNTagger(nn.Module):
         tokenizer: TokenizerBase,
         label_encoder: LabelEncoder,
         optimizer: torch.optim.Optimizer,
+        optimizer_args: Dict[str, Any],
         criterion: nn.Module,
         num_epochs: int,
         device: torch.device,
         eval_metrics: List[BaseMetric] = [Accuracy],
+        output_dir: str = "./out", 
         callback: Optional[Checkpointing] = None,
         scheduler: Optional[torch.optim.lr_scheduler.LRScheduler] = None,
         max_length: Optional[int] = None,
         batch_size: Optional[int] = None,
         pretokenizer: Callable = lambda x: x,
     ):
+        self.to(device)
         if type(train_set) != DataLoader:
             train_dataloader = convert_to_dataloader(
                 dataset=train_set,
@@ -97,11 +102,21 @@ class RNNTagger(nn.Module):
                 shuffle=False,
             )
 
+        if not os.path.isdir(output_dir):
+            os.mkdir(output_dir)
+
         total = len(train_dataloader) * num_epochs
         results = defaultdict(lambda: defaultdict(dict))
+        optimizer = optimizer(
+            self.parameters(), **optimizer_args
+        )
 
         with tqdm(
-            total=total, desc="Training", disable=xtagger.DISABLE_PROGRESS_BAR
+            total=total,
+            desc="Training",
+            disable=xtagger.DISABLE_PROGRESS_BAR,
+            position=0,
+            leave=True,
         ) as progressbar:
             for epoch in range(num_epochs):
                 total_loss = 0
@@ -113,7 +128,7 @@ class RNNTagger(nn.Module):
                     labels = batch["labels"].to(device)
 
                     optimizer.zero_grad()
-                    out = self.forward(input_ids=input_ids)
+                    out = self.forward(input_ids=input_ids.long())
                     loss = criterion(out.permute(0, 2, 1).float(), labels.long())
                     ## TODO: add mixed precision training here
                     ## TODO: add gradient scaling here
@@ -133,18 +148,24 @@ class RNNTagger(nn.Module):
                     eval_metrics=eval_metrics,
                 )
 
-                results["train"]["loss"] = total_loss / batch_count
-                results["eval"]["loss"] = eval_loss
-                results["eval"] = eval_results
+                results[str(epoch+1)]["train"]["loss"] = total_loss / batch_count
+                results[str(epoch+1)]["eval"]["loss"] = eval_loss
+                results[str(epoch+1)]["eval"] = eval_results
+                write_results(results=results, output_dir=output_dir)
 
-                callback(
-                    model=self, results=results, path=".", name="model", indicator_name=str(epoch)
-                )
+                if callback != None:
+                    callback(
+                        model=self,
+                        results=results,
+                        path=".",
+                        name="model",
+                        indicator_name=str(epoch),
+                    )
 
                 if scheduler != None:
                     scheduler.step()
 
-        return results
+        return dict(results[str(num_epochs)])
 
     @torch.no_grad()
     def __eval(
@@ -162,7 +183,11 @@ class RNNTagger(nn.Module):
 
         total = len(dev_dataloader)
         with tqdm(
-            total=total, desc="Evaluating", disable=xtagger.DISABLE_PROGRESS_BAR
+            total=total,
+            desc="Evaluating",
+            disable=xtagger.DISABLE_PROGRESS_BAR,
+            position=0,
+            leave=False,
         ) as progressbar:
             for idx, batch in enumerate(dev_dataloader):
                 self.eval()
@@ -170,15 +195,15 @@ class RNNTagger(nn.Module):
                 input_ids = batch["input_ids"].to(device)
                 labels = batch["labels"].to(device)
 
-                out = self.forward(input_ids=input_ids)
+                out = self.forward(input_ids=input_ids.long())
                 loss = criterion(out.permute(0, 2, 1).float(), labels.long())
 
-                preds = torch.softmax(dim=-1).argmax(out, dim=-1).squeeze(dim=0).flatten()
-
+                preds = out.softmax(dim=-1).argmax(dim=-1).squeeze(dim=0).flatten()
                 ground_truth = labels.contiguous().view(-1)
+
                 non_pad_indices = (ground_truth != label_encoder.pad_tag_id).nonzero()
-                non_pad_preds = preds[non_pad_indices].squeeze(dim=-1)
-                non_pad_ground_truth = ground_truth[non_pad_indices].squeeze(dim=-1)
+                non_pad_preds = preds[non_pad_indices].squeeze(dim=-1).tolist()
+                non_pad_ground_truth = ground_truth[non_pad_indices].squeeze(dim=-1).tolist()
 
                 y_pred_test.extend([label_encoder[t] for t in non_pad_preds])
                 y_true_test.extend([label_encoder[t] for t in non_pad_ground_truth])
@@ -188,15 +213,11 @@ class RNNTagger(nn.Module):
 
                 progressbar.update()
 
-        y_pred_test, y_true_test = convert_to_onehot(
-            y_pred_test, y_true_test, tags=label_encoder.reverse_maps
-        )
-
         results = metric_results(
             y_pred=y_pred_test,
             y_true=y_true_test,
             eval_metrics=eval_metrics,
-            tags=label_encoder.reverse_maps,
+            tags=label_encoder.maps,
         )
         total_loss = total_loss / batch_count
 
@@ -210,5 +231,6 @@ class RNNTagger(nn.Module):
     ):
         pass
 
+    @torch.inference_mode()
     def predict(self, sentence: Union[str, List[str]], tokenizer: TokenizerBase):
         pass
