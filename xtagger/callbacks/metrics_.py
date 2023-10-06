@@ -136,9 +136,9 @@ class Accuracy(BaseMetric):
     ) -> None:
         super().__init__(y_true, y_pred, tags)
 
-    def __call__(self) -> Dict[str, float]:
+    def __call__(self) -> float:
         acc = accuracy_score(self.y_true, self.y_pred)
-        return {"accuracy": acc}
+        return acc
     
 
 class ClassificationReport(BaseMetric):
