@@ -25,5 +25,9 @@ def load_pickle(path: str) -> Any:
     return obj
 
 
-def makepath(dir, name):
-    return os.path.join(dir, name)
+def makepath(*path):
+    return os.path.join(*path)
+
+
+def flatten_list(ls: List):
+    return [item for sublist in ls for item in sublist]
