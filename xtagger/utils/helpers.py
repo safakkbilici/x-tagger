@@ -1,7 +1,6 @@
 import os
 import pickle
-
-from typing import Union, List, Any
+from typing import Any, List, Union
 
 
 def readfile(path: str, lines: bool = False) -> Union[str, List[str]]:

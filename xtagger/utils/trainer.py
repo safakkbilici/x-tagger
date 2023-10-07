@@ -1,30 +1,32 @@
+from typing import List, Optional, Union
+
 import torch
-from xtagger.utils import metrics
-from xtagger.utils.callbacks import Checkpointing
 import torch.nn as nn
 from tqdm.auto import tqdm
-from typing import List, Optional, Union
+from xtagger.utils import metrics
+from xtagger.utils.callbacks import Checkpointing
 
 try:
     import torchtext.legacy.data as ttext
 except ImportError:
     import torchtext.data as ttext
 
-class PyTorchTagTrainer():
+
+class PyTorchTagTrainer:
     def __init__(
-            self,
-            model,
-            optimizer: torch.optim,
-            criterion: torch.nn,
-            train_iterator: ttext.iterator.BucketIterator,
-            val_iterator: ttext.iterator.BucketIterator,
-            test_iterator: ttext.iterator.BucketIterator,
-            TEXT: ttext.field.Field,
-            TAGS: ttext.field.Field,
-            device: torch.device,
-            eval_metrics: List[str] = ["acc"],
-            checkpointing: Optional[Checkpointing] = None,
-            result_type: str = "%"
+        self,
+        model,
+        optimizer: torch.optim,
+        criterion: torch.nn,
+        train_iterator: ttext.iterator.BucketIterator,
+        val_iterator: ttext.iterator.BucketIterator,
+        test_iterator: ttext.iterator.BucketIterator,
+        TEXT: ttext.field.Field,
+        TAGS: ttext.field.Field,
+        device: torch.device,
+        eval_metrics: List[str] = ["acc"],
+        checkpointing: Optional[Checkpointing] = None,
+        result_type: str = "%",
     ) -> None:
         r"""
         Args:
@@ -47,7 +49,7 @@ class PyTorchTagTrainer():
 
             device: the pytorch device variable
 
-            eval_metrics: Current implemented eval metrics as string. Or a custom 
+            eval_metrics: Current implemented eval metrics as string. Or a custom
                           metric that is inherited from ``xtagger.utils.metrics.xMetric``
                           See docs for how to write custom metrics.
 
@@ -61,19 +63,19 @@ class PyTorchTagTrainer():
         self.train_iterator = train_iterator
         self.val_iterator = val_iterator
         self.test_iterator = test_iterator
-        
+
         if self.test_iterator == None:
             self.test_iterator = self.val_iterator
-        
+
         self.TEXT = TEXT
         self.TAGS = TAGS
         self.TAG_PAD_IDX = self.TAGS.vocab.stoi[self.TAGS.pad_token]
         self.device = device
         self.result_type = result_type
-        
+
         metrics.check_eval_metrics(eval_metrics)
         self.eval_metrics = eval_metrics
-        
+
         self.checkpointing = checkpointing
         if self.checkpointing != None and checkpointing.save_best == True:
             callbacks.check_monitor_eval_metrics(checkpointing.monitor, self.eval_metrics)
@@ -83,19 +85,19 @@ class PyTorchTagTrainer():
         batch_size = self.train_iterator.batch_size
         if next(iter(self.train_iterator)).sentence.size(0) != batch_size:
             self.batch_first = False
-            
-        with tqdm(total = total) as tt:
+
+        with tqdm(total=total) as tt:
             for epoch in range(epochs):
                 for batch in self.train_iterator:
                     self.model.train()
                     if not self.batch_first:
-                        text = batch.sentence.permute(1,0).to(self.device)
-                        tags = batch.tags.permute(1,0).to(self.device)
+                        text = batch.sentence.permute(1, 0).to(self.device)
+                        tags = batch.tags.permute(1, 0).to(self.device)
 
                     self.optimizer.zero_grad()
-                    
+
                     out = self.model.forward(text)
-                    loss = self.criterion(out.permute(0,2,1).float(), tags.long())
+                    loss = self.criterion(out.permute(0, 2, 1).float(), tags.long())
                     loss.backward()
                     self.optimizer.step()
                     tt.update()
@@ -114,18 +116,18 @@ class PyTorchTagTrainer():
         train_y_pred = []
         train_y_true = []
 
-        with tqdm(total = total) as ee:
+        with tqdm(total=total) as ee:
             for batch in self.val_iterator:
                 if not self.batch_first:
-                    text = batch.sentence.permute(1,0).to(self.device)
-                    tags = batch.tags.permute(1,0).to(self.device)
-                    
+                    text = batch.sentence.permute(1, 0).to(self.device)
+                    tags = batch.tags.permute(1, 0).to(self.device)
+
                 with torch.no_grad():
                     self.model.eval()
                     eval_count += 1
                     out = self.model.forward(text)
                     preds = torch.argmax(out, dim=-1).squeeze(dim=0).flatten()
-                    loss = self.criterion(out.permute(0,2,1).float(), tags.long())
+                    loss = self.criterion(out.permute(0, 2, 1).float(), tags.long())
                     eval_loss += loss.item()
                     tag_sample = tags.contiguous().view(-1)
                     non_pad_elements = (tag_sample != self.TAG_PAD_IDX).nonzero()
@@ -137,14 +139,14 @@ class PyTorchTagTrainer():
 
             for batch in self.train_iterator:
                 if not self.batch_first:
-                    text = batch.sentence.permute(1,0).to(self.device)
-                    tags = batch.tags.permute(1,0).to(self.device)
+                    text = batch.sentence.permute(1, 0).to(self.device)
+                    tags = batch.tags.permute(1, 0).to(self.device)
                 with torch.no_grad():
                     self.model.eval()
                     train_count += 1
                     out = self.model.forward(text)
                     preds = torch.argmax(out, dim=-1).squeeze(dim=0).flatten()
-                    loss = self.criterion(out.permute(0,2,1).float(), tags.long())
+                    loss = self.criterion(out.permute(0, 2, 1).float(), tags.long())
                     train_loss += loss.item()
                     tag_sample = tags.contiguous().view(-1)
                     non_pad_elements = (tag_sample != self.TAG_PAD_IDX).nonzero()
@@ -157,30 +159,25 @@ class PyTorchTagTrainer():
         train_loss = train_loss / train_count
         eval_loss = eval_loss / eval_count
 
-        test_preds_oh, test_gt_oh = metrics.tag2onehot(test_y_pred, test_y_true, self.TAGS.vocab.itos)
-        train_preds_oh, train_gt_oh = metrics.tag2onehot(train_y_pred, train_y_true, self.TAGS.vocab.itos)
+        test_preds_oh, test_gt_oh = metrics.tag2onehot(
+            test_y_pred, test_y_true, self.TAGS.vocab.itos
+        )
+        train_preds_oh, train_gt_oh = metrics.tag2onehot(
+            train_y_pred, train_y_true, self.TAGS.vocab.itos
+        )
 
         results = {}
         results["eval"] = metrics.metric_results(
-            test_gt_oh,
-            test_preds_oh,
-            self.eval_metrics,
-            self.result_type,
-            self.TAGS.vocab.itos
+            test_gt_oh, test_preds_oh, self.eval_metrics, self.result_type, self.TAGS.vocab.itos
         )
 
         results["train"] = metrics.metric_results(
-            train_gt_oh,
-            train_preds_oh,
-            self.eval_metrics,
-            self.result_type,
-            self.TAGS.vocab.itos
+            train_gt_oh, train_preds_oh, self.eval_metrics, self.result_type, self.TAGS.vocab.itos
         )
 
         results["eval_loss"] = eval_loss
         results["train_loss"] = train_loss
         return results
-
 
     def evaluate(self):
         test_y_pred = []
@@ -188,21 +185,21 @@ class PyTorchTagTrainer():
         total = len(self.test_iterator)
 
         test_loss, test_count = 0, 0
-        with tqdm(total = total) as ee:
+        with tqdm(total=total) as ee:
             for batch in self.test_iterator:
                 if not self.batch_first:
-                    text = batch.sentence.permute(1,0).to(self.device)
-                    tags = batch.tags.permute(1,0).to(self.device)
+                    text = batch.sentence.permute(1, 0).to(self.device)
+                    tags = batch.tags.permute(1, 0).to(self.device)
                     with torch.no_grad():
                         self.model.eval()
                         test_count += 1
                         out = self.model.forward(text)
 
                         preds = torch.argmax(out, dim=-1).squeeze(dim=0).flatten()
-                        loss = self.criterion(out.permute(0,2,1).float(), tags.long())
-                        
+                        loss = self.criterion(out.permute(0, 2, 1).float(), tags.long())
+
                         test_loss += loss.item()
-                        
+
                         tag_sample = tags.contiguous().view(-1)
                         non_pad_elements = (tag_sample != self.TAG_PAD_IDX).nonzero()
                         non_pad_preds = preds[non_pad_elements].squeeze(dim=-1)
@@ -212,15 +209,13 @@ class PyTorchTagTrainer():
                         ee.update()
 
         test_loss = test_loss / test_count
-        test_preds_oh, test_gt_oh = metrics.tag2onehot(test_y_pred, test_y_true, self.TAGS.vocab.itos)
+        test_preds_oh, test_gt_oh = metrics.tag2onehot(
+            test_y_pred, test_y_true, self.TAGS.vocab.itos
+        )
 
         results = {}
         results["eval"] = metrics.metric_results(
-            test_gt_oh,
-            test_preds_oh,
-            self.eval_metrics,
-            self.result_type,
-            self.TAGS.vocab.itos
+            test_gt_oh, test_preds_oh, self.eval_metrics, self.result_type, self.TAGS.vocab.itos
         )
 
         results["eval_loss"] = test_loss

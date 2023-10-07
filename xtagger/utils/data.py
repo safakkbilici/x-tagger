@@ -1,14 +1,14 @@
 import os
-from typing import Callable, List, Tuple, Union
 from collections import Counter
+from typing import Callable, List, Tuple, Union
 
 import pandas as pd
 import torch
 import xtagger
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import DataLoader, Dataset
 from tqdm.auto import tqdm
 from xtagger.tokenization.base import TokenizerBase
-from xtagger.utils.helpers import load_pickle, save_pickle, flatten_list
+from xtagger.utils.helpers import flatten_list, load_pickle, save_pickle
 
 
 class LabelEncoder:
@@ -94,7 +94,7 @@ def align_labels(
 ) -> List[int]:
     labels = [label_encoder.pad_tag_id]
     word_ids = Counter(word_ids)
-    
+
     tags_repeat = [[t] * word_ids[tidx] for tidx, t in enumerate(tags)]
     tags_repeat = flatten_list(tags_repeat)
     labels.extend(tags_repeat)

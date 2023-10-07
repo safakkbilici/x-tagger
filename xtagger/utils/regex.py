@@ -1,21 +1,20 @@
 import re
-import xtagger
 from typing import List, Optional, Tuple, Union
 
+import xtagger
 
-        
 
 class EnglishRegExTagger(object):
     def __init__(
-            self,
-            rules: Optional[List[Tuple[str, str]]] = None,
-            use_default: bool = True,
-            mode: bool = "morphological"
+        self,
+        rules: Optional[List[Tuple[str, str]]] = None,
+        use_default: bool = True,
+        mode: bool = "morphological",
     ):
         self._modes = ["morphological", "prior"]
         if mode not in self._modes:
             raise ValueError("Supporting only morphological or prior tagging for regex.")
-        
+
         self.use_default = use_default
         self.language = "en"
         if rules is not None:
@@ -26,17 +25,17 @@ class EnglishRegExTagger(object):
                 self.patterns.append(pattern)
         if use_default:
             self.default = [
-                (r'.*ing$', 'VERB'),
-                (r'.*ed$', 'VERB'),
-                (r'.*es$', 'VERB'),
-                (r'.*\'s$', 'NOUN'),
-                (r'.*s$', 'NOUN'),
-                (r'\*T?\*?-[0-9]+$', 'X'),
-                (r'^-?[0-9]+(.[0-9]+)?$', 'NUM'),
-                (r'.*', 'NOUN')
+                (r".*ing$", "VERB"),
+                (r".*ed$", "VERB"),
+                (r".*es$", "VERB"),
+                (r".*\'s$", "NOUN"),
+                (r".*s$", "NOUN"),
+                (r"\*T?\*?-[0-9]+$", "X"),
+                (r"^-?[0-9]+(.[0-9]+)?$", "NUM"),
+                (r".*", "NOUN"),
             ]
 
-            if hasattr(self,"patterns") and self.patterns:
+            if hasattr(self, "patterns") and self.patterns:
                 for pattern in self.patterns:
                     if pattern not in self.default:
                         self.default.append(pattern)
@@ -46,7 +45,7 @@ class EnglishRegExTagger(object):
             return self.default
         else:
             return self.patterns
-        
+
     def tag(self, word):
         patterns = self.get_patterns()
         found = -1
@@ -60,4 +59,3 @@ class EnglishRegExTagger(object):
 class AutoRegExTagger(object):
     def __init__(self):
         raise NotImplementedError()
-        
