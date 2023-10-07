@@ -1,9 +1,8 @@
 import os
-
-from typing import List, Union, Callable, Optional, Tuple, Dict
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 from xtagger.tokenization.base import TokenizerBase
-from xtagger.utils.helpers import readfile, save_pickle, load_pickle
+from xtagger.utils.helpers import load_pickle, readfile, save_pickle
 
 
 class WhiteSpaceTokenizer(TokenizerBase):
@@ -33,11 +32,10 @@ class WhiteSpaceTokenizer(TokenizerBase):
         data: Union[str, List[List[Tuple[str, str]]]],
         pretokenizer: Callable = lambda x: x.split(),
     ) -> None:
-        
         cid = self.vocab_size
         if type(data) == str and os.path.isfile(data):
             data = readfile(data)
- 
+
         elif type(data) != str:
             data = [[pair[0] for pair in sample] for sample in data]
             data = [item for sublist in data for item in sublist]
@@ -58,20 +56,20 @@ class WhiteSpaceTokenizer(TokenizerBase):
         sentence: Union[List[str], List[List[str]]],
         max_length: Optional[int],
         pretokenizer: Callable = lambda x: x,
-        **kwargs
+        **kwargs,
     ) -> Dict[str, Union[List[int], List[List[int]]]]:
         encoded = []
         sequence_word_ids = []
 
         if type(sentence[0]) == str:
             sentence = [sentence]
-            
+
         for sequence in sentence:
             encoded_sequence = []
             word_ids = []
             for wid, token in enumerate(sequence):
                 token = pretokenizer(token)
-                if type(token) == str: 
+                if type(token) == str:
                     tid = self.vocab.get(token, self.unk_token_id)
                     encoded_sequence.append(tid)
                     word_ids.append(wid)

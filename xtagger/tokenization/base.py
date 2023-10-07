@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Union, Optional, Callable
+from typing import Callable, List, Optional, Union
 
 
 class TokenizerBase(ABC):
