@@ -39,7 +39,7 @@ class HiddenMarkovModel:
         self._indexing = None
         self._pad_token = None
 
-    def fit(self, train_set: List[List[Tuple[str, str]]], pad_token: str = ".") -> None:
+    def fit(self, train_set: xtagger.DATASET_TYPE, pad_token: str = ".") -> None:
         self._train_set = train_set
         self._train_tagged_words = [tup for sent in self._train_set for tup in sent]
         self._tags = {tag for word, tag in self._train_tagged_words}
@@ -68,7 +68,7 @@ class HiddenMarkovModel:
 
     def evaluate(
         self,
-        test_set: List[List[Tuple[str, str]]],
+        test_set: xtagger.DATASET_TYPE,
         random_size: int = 30,
         seed: Optional[int] = None,
         eval_metrics: List[str | metrics_.BaseMetric] = [metrics_.Accuracy],
