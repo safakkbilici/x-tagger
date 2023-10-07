@@ -1,6 +1,7 @@
 import os
 from typing import Callable, Dict, List, Optional, Tuple, Union
 
+import xtagger
 from xtagger.tokenization.base import TokenizerBase
 from xtagger.utils.helpers import load_pickle, readfile, save_pickle
 
@@ -30,7 +31,7 @@ class WhiteSpaceTokenizer(TokenizerBase):
     def fit(
         self,
         data: Union[str, List[List[Tuple[str, str]]]],
-        pretokenizer: Callable = lambda x: x.split(),
+        pretokenizer: Callable = xtagger.DEFAULT_PRETOKENIZER,
     ) -> None:
         cid = self.vocab_size
         if type(data) == str and os.path.isfile(data):
@@ -55,28 +56,23 @@ class WhiteSpaceTokenizer(TokenizerBase):
         self,
         sentence: Union[List[str], List[List[str]]],
         max_length: Optional[int],
-        pretokenizer: Callable = lambda x: x,
+        pretokenizer: Callable = xtagger.DEFAULT_PRETOKENIZER,
         **kwargs,
     ) -> Dict[str, Union[List[int], List[List[int]]]]:
         encoded = []
         sequence_word_ids = []
 
-        if type(sentence[0]) == str:
+        if type(sentence) == str:
             sentence = [sentence]
 
         for sequence in sentence:
             encoded_sequence = []
             word_ids = []
+            sequence = pretokenizer(sequence)
             for wid, token in enumerate(sequence):
-                token = pretokenizer(token)
-                if type(token) == str:
-                    tid = self.vocab.get(token, self.unk_token_id)
-                    encoded_sequence.append(tid)
-                    word_ids.append(wid)
-                else:
-                    tid = [self.vocab.get(t, self.unk_token_id) for t in token]
-                    encoded_sequence.extend(tid)
-                    word_ids.extend([wid for _ in tid])
+                tid = self.vocab.get(token, self.unk_token_id)
+                encoded_sequence.append(tid)
+                word_ids.append(wid)
 
             if max_length != None:
                 if len(encoded_sequence) > (max_length - 2):
@@ -100,7 +96,10 @@ class WhiteSpaceTokenizer(TokenizerBase):
     def decode(
         self, input_ids: Union[int, List[int]], remove_special_tokens: bool = True
     ) -> Union[str, List[str]]:
-        if type(input_ids[0]) == int:
+        if type(input_ids) in [int, float]:
+            input_ids = [[input_ids]]
+
+        elif type(input_ids[0]) in [int, float]:
             input_ids = [input_ids]
 
         decoded = []
