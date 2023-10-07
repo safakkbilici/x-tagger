@@ -8,7 +8,7 @@ import xtagger
 from torch.utils.data import DataLoader, Dataset
 from tqdm.auto import tqdm
 from xtagger.tokenization.base import TokenizerBase
-from xtagger.utils.helpers import flatten_list, load_pickle, save_pickle
+from xtagger.utils.helpers import flatten_list, load_pickle, save_pickle, to_string
 
 
 class LabelEncoder:
@@ -47,7 +47,7 @@ class Sampler(Dataset):
         tokenizer: TokenizerBase,
         label_encoder: LabelEncoder,
         max_length: int,
-        pretokenizer: Callable = lambda x: x,
+        pretokenizer: Callable = lambda x: x.split(),
     ) -> None:
         super().__init__()
         self.dataset = dataset
@@ -61,7 +61,7 @@ class Sampler(Dataset):
 
     def __getitem__(self, idx):
         sample = self.dataset[idx]
-        sentence = [pair[0] for pair in sample]
+        sentence = to_string([pair[0] for pair in sample])
         tags = [self.label_encoder[pair[1]] for pair in sample]
 
         encoded = self.tokenizer.encode(
