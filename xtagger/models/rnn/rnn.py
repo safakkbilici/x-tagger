@@ -1,11 +1,11 @@
 import os
-
 from collections import defaultdict
-from typing import Callable, List, Optional, Tuple, Union, Any, Dict
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import torch
 import torch.nn as nn
 import xtagger
+from torch.cuda.amp import GradScaler, autocast
 from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
 from xtagger.callbacks.checkpoint import Checkpointing
@@ -67,12 +67,13 @@ class RNNTagger(nn.Module):
         tokenizer: TokenizerBase,
         label_encoder: LabelEncoder,
         optimizer: torch.optim.Optimizer,
-        optimizer_args: Dict[str, Any],
         criterion: nn.Module,
         num_epochs: int,
         device: torch.device,
         eval_metrics: List[BaseMetric] = [Accuracy],
-        output_dir: str = "./out", 
+        output_dir: str = "./out",
+        use_amp: bool = False,
+        max_grad_norm: Optional[float] = None,
         callback: Optional[Checkpointing] = None,
         scheduler: Optional[torch.optim.lr_scheduler.LRScheduler] = None,
         max_length: Optional[int] = None,
@@ -105,11 +106,11 @@ class RNNTagger(nn.Module):
         if not os.path.isdir(output_dir):
             os.mkdir(output_dir)
 
+        if use_amp:
+            scaler = GradScaler()
+
         total = len(train_dataloader) * num_epochs
         results = defaultdict(lambda: defaultdict(dict))
-        optimizer = optimizer(
-            self.parameters(), **optimizer_args
-        )
 
         with tqdm(
             total=total,
@@ -128,12 +129,25 @@ class RNNTagger(nn.Module):
                     labels = batch["labels"].to(device)
 
                     optimizer.zero_grad()
-                    out = self.forward(input_ids=input_ids.long())
-                    loss = criterion(out.permute(0, 2, 1).float(), labels.long())
-                    ## TODO: add mixed precision training here
-                    ## TODO: add gradient scaling here
-                    loss.backward()
-                    optimizer.step()
+
+                    if use_amp:
+                        with self._autocast():
+                            out = self.forward(input_ids=input_ids.long())
+                            loss = criterion(out.permute(0, 2, 1).float(), labels.long())
+
+                        scaler.scale(loss).backward()
+                        if max_grad_norm != None:
+                            nn.utils.clip_grad_norm_(self.parameters(), max_norm=max_grad_norm)
+                        scaler.step(optimizer)
+                        scaler.update()
+
+                    else:
+                        out = self.forward(input_ids=input_ids.long())
+                        loss = criterion(out.permute(0, 2, 1).float(), labels.long())
+                        loss.backward()
+                        if max_grad_norm != None:
+                            nn.utils.clip_grad_norm_(self.parameters(), max_norm=max_grad_norm)
+                        optimizer.step()
 
                     total_loss += loss.item()
                     batch_count += 1
@@ -148,9 +162,9 @@ class RNNTagger(nn.Module):
                     eval_metrics=eval_metrics,
                 )
 
-                results[str(epoch+1)]["train"]["loss"] = total_loss / batch_count
-                results[str(epoch+1)]["eval"]["loss"] = eval_loss
-                results[str(epoch+1)]["eval"] = eval_results
+                results[str(epoch + 1)]["train"]["loss"] = total_loss / batch_count
+                results[str(epoch + 1)]["eval"]["loss"] = eval_loss
+                results[str(epoch + 1)]["eval"] = eval_results
                 write_results(results=results, output_dir=output_dir)
 
                 if callback != None:
@@ -234,3 +248,21 @@ class RNNTagger(nn.Module):
     @torch.inference_mode()
     def predict(self, sentence: Union[str, List[str]], tokenizer: TokenizerBase):
         pass
+
+    def _autocast(self, dtype=torch.float16):
+        class AMPContextManager:
+            def __enter__(self):
+                self.dtype = dtype
+                return self
+
+            def __exit__(self, exc_type, exc_value, traceback):
+                pass
+
+            def __call__(self, func):
+                def autocast_decorator(*args, **kwargs):
+                    with autocast(dtype=self.dtype):
+                        return func(*args, **kwargs)
+
+                return autocast
+
+        return AMPContextManager()
