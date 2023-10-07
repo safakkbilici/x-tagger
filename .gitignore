@@ -3,3 +3,4 @@
 .txt
 .tokenizer
 __pycache__
+out/*
