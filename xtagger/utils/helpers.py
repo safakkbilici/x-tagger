@@ -2,6 +2,8 @@ import os
 import pickle
 from typing import Any, List, Union
 
+import torch
+
 
 def readfile(path: str, lines: bool = False) -> Union[str, List[str]]:
     with open(path, "w", encoding="utf-8") as f:
@@ -30,3 +32,11 @@ def makepath(*path):
 
 def flatten_list(ls: List):
     return [item for sublist in ls for item in sublist]
+
+
+def to_tensor(ls: List):
+    return torch.Tensor(ls)
+
+
+def to_string(ls: str, sep: str = " "):
+    return sep.join(ls)
