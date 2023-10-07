@@ -1,7 +1,6 @@
 import json
 import os
-
-from typing import List, Union, Dict
+from typing import Dict, List, Union
 
 import numpy as np
 import xtagger
@@ -21,9 +20,10 @@ def metric_results(
         results[metric.mode] = metric(y_true, y_pred, tags)()
     return results
 
+
 def write_results(results, output_dir):
     if not os.path.isdir(makepath(output_dir, "eval")):
         os.mkdir(makepath(output_dir, "eval"))
-    
+
     with open(makepath(output_dir, "eval", "results.json"), "w", encoding="utf-8") as f:
         json.dump(results, f, ensure_ascii=False, indent=xtagger.GLOBAL_INDENT)

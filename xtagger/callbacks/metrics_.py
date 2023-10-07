@@ -1,5 +1,5 @@
 import warnings
-from typing import Any, List, Optional, Dict
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 from sklearn.exceptions import UndefinedMetricWarning
@@ -139,12 +139,14 @@ class Accuracy(BaseMetric):
     def __call__(self) -> float:
         acc = accuracy_score(self.y_true, self.y_pred)
         return acc
-    
+
 
 class ClassificationReport(BaseMetric):
     mode: str = "classification_report"
 
-    def __init__(self, y_true: List[float], y_pred: List[float], tags: List[str] | None = None) -> None:
+    def __init__(
+        self, y_true: List[float], y_pred: List[float], tags: List[str] | None = None
+    ) -> None:
         super().__init__(y_true, y_pred, tags)
 
     def __call__(self) -> None:
