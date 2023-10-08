@@ -170,8 +170,8 @@ class RNNTagger(nn.Module):
                 )
 
                 results[str(epoch + 1)]["train"]["loss"] = total_loss / batch_count
-                results[str(epoch + 1)]["eval"]["loss"] = eval_loss
                 results[str(epoch + 1)]["eval"] = eval_results
+                results[str(epoch + 1)]["eval"]["loss"] = eval_loss
                 write_results(results=results, output_dir=output_dir)
 
                 if callback != None:
@@ -363,10 +363,7 @@ class RNNTagger(nn.Module):
                         preds,
                     )
                 )
-                
-
                 predictions.append(preds)
-
                 progressbar.update()
 
         return predictions
