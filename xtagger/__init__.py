@@ -22,6 +22,7 @@ from xtagger.utils.data import (
 )
 from xtagger.utils.regex import EnglishRegExTagger
 from xtagger.tokenization.whitespace import WhiteSpaceTokenizer
+from xtagger.tokenization.hf_interface import HFTokenizer
 from xtagger.utils.data import LabelEncoder
 
 IMPLEMENTED_METRICS = [
