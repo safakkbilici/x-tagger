@@ -26,17 +26,21 @@ def load_pickle(path: str) -> Any:
     return obj
 
 
-def makepath(*path):
+def makepath(*path) -> str:
     return os.path.join(*path)
 
 
-def flatten_list(ls: List):
+def flatten_list(ls: List) -> List:
     return [item for sublist in ls for item in sublist]
 
 
-def to_tensor(ls: List):
+def to_tensor(ls: List) -> torch.Tensor:
     return torch.Tensor(ls)
 
 
-def to_string(ls: str, sep: str = " "):
+def to_string(ls: str, sep: str = " ") -> str:
     return sep.join(ls)
+
+
+def is_none(obj: Any) -> bool:
+    return obj is None
