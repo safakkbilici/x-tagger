@@ -10,6 +10,7 @@ from xtagger.utils.helpers import makepath
 
 warnings.filterwarnings("ignore", category=UndefinedMetricWarning)
 
+
 def metric_results(
     y_true: Union[np.ndarray, List[List[int]]],
     y_pred: Union[np.ndarray, List[List[int]]],

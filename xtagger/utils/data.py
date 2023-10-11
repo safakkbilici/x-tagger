@@ -96,7 +96,9 @@ def align_labels(
     word_ids = Counter(word_ids)
     word_ids = dict(sorted(word_ids.items(), key=lambda x: x[0]))
 
-    tags_repeat = [[tags[tidx]] * wid_freq for tidx, (wid, wid_freq) in enumerate(word_ids.items())]
+    tags_repeat = [
+        [tags[tidx]] * wid_freq for tidx, (wid, wid_freq) in enumerate(word_ids.items())
+    ]
     tags_repeat = flatten_list(tags_repeat)
     labels.extend(tags_repeat)
     labels.append(label_encoder.pad_tag_id)

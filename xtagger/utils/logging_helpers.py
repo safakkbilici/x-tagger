@@ -22,12 +22,12 @@ class LoggingHandler(logging.Handler):
 
 def suppress_hf_logs() -> None:
     from transformers import logging as hflogging
+
     hflogging.set_verbosity_warning()
 
 
-
 def set_global_logging_level(level: Callable = logging.ERROR, prefices: List[str] = [""]) -> None:
-    prefix_re = re.compile(fr'^(?:{ "|".join(prefices) })')
+    prefix_re = re.compile(rf'^(?:{ "|".join(prefices) })')
     for name in logging.root.manager.loggerDict:
         if re.match(prefix_re, name):
             logging.getLogger(name).setLevel(level)

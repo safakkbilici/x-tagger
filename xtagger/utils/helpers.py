@@ -53,4 +53,5 @@ def suppres_print(f):
         value = f(*args, **kwargs)
         sys.stdout = sys.__stdout__
         return value
+
     return wrapper
