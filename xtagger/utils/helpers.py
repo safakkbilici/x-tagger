@@ -1,5 +1,6 @@
 import os
 import pickle
+import sys
 from typing import Any, List, Union
 
 import torch
@@ -44,3 +45,12 @@ def to_string(ls: str, sep: str = " ") -> str:
 
 def is_none(obj: Any) -> bool:
     return obj is None
+
+
+def suppres_print(f):
+    def wrapper(*args, **kwargs):
+        sys.stdout = open(os.devnull, "w")
+        value = f(*args, **kwargs)
+        sys.stdout = sys.__stdout__
+        return value
+    return wrapper
