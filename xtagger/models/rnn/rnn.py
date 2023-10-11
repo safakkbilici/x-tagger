@@ -14,7 +14,7 @@ from xtagger.callbacks.metrics import metric_results, write_results
 from xtagger.callbacks.metrics_ import Accuracy, BaseMetric
 from xtagger.tokenization.base import TokenizerBase
 from xtagger.utils.data import LabelEncoder, convert_to_dataloader
-from xtagger.utils.helpers import to_tensor, to_string
+from xtagger.utils.helpers import to_string, to_tensor
 
 logger = logging.getLogger(__name__)
 
@@ -115,11 +115,11 @@ class RNNTagger(nn.Module):
 
         if not os.path.isdir(output_dir):
             os.mkdir(output_dir)
-            
+
         logger.info(f"Output path is set to {output_dir}.")
         logger.info(f"Evaluation results will be saved to {output_dir}.")
         logger.info(f"Checkpoints will be saved to {output_dir}.")
-        
+
         if use_amp:
             scaler = GradScaler()
 
@@ -341,7 +341,7 @@ class RNNTagger(nn.Module):
         label_encoder: LabelEncoder,
         device: torch.device,
         max_length: Optional[int] = None,
-        pretokenizer: Callable = xtagger.DEFAULT_PRETOKENIZER
+        pretokenizer: Callable = xtagger.DEFAULT_PRETOKENIZER,
     ):
         self.eval()
         if type(sentence) == str:
@@ -369,7 +369,7 @@ class RNNTagger(nn.Module):
                     map(
                         lambda x: (
                             to_string(tokenizer.decode(x[0], remove_special_tokens=False)[0]),
-                            label_encoder[x[1]]
+                            label_encoder[x[1]],
                         ),
                         preds,
                     )
