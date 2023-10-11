@@ -1,6 +1,7 @@
+import logging
 import os
 from collections import defaultdict
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 import torch
 import torch.nn as nn
@@ -14,6 +15,8 @@ from xtagger.callbacks.metrics_ import Accuracy, BaseMetric
 from xtagger.tokenization.base import TokenizerBase
 from xtagger.utils.data import LabelEncoder, convert_to_dataloader
 from xtagger.utils.helpers import to_tensor, to_string
+
+logger = logging.getLogger(__name__)
 
 
 class RNNTagger(nn.Module):
@@ -98,7 +101,7 @@ class RNNTagger(nn.Module):
 
         if type(dev_set) != DataLoader:
             dev_dataloader = convert_to_dataloader(
-                dataset=train_set,
+                dataset=dev_set,
                 tokenizer=tokenizer,
                 label_encoder=label_encoder,
                 batch_size=batch_size,
@@ -112,7 +115,11 @@ class RNNTagger(nn.Module):
 
         if not os.path.isdir(output_dir):
             os.mkdir(output_dir)
-
+            
+        logger.info(f"Output path is set to {output_dir}.")
+        logger.info(f"Evaluation results will be saved to {output_dir}.")
+        logger.info(f"Checkpoints will be saved to {output_dir}.")
+        
         if use_amp:
             scaler = GradScaler()
 
@@ -169,7 +176,8 @@ class RNNTagger(nn.Module):
                     eval_metrics=eval_metrics,
                 )
 
-                results[str(epoch + 1)]["train"]["loss"] = total_loss / batch_count
+                train_loss = total_loss / batch_count
+                results[str(epoch + 1)]["train"]["loss"] = train_loss
                 results[str(epoch + 1)]["eval"] = eval_results
                 results[str(epoch + 1)]["eval"]["loss"] = eval_loss
                 write_results(results=results, output_dir=output_dir)
@@ -185,6 +193,9 @@ class RNNTagger(nn.Module):
 
                 if scheduler != None:
                     scheduler.step()
+
+                logger.info(f"Epoch {epoch+1}/{num_epochs} - Train Loss: {train_loss}")
+                logger.info(f"Epoch {epoch+1}/{num_epochs} - Evaluation Loss: {eval_loss}")
 
         return dict(results[str(num_epochs)])
 
@@ -265,7 +276,7 @@ class RNNTagger(nn.Module):
                 batch_size=batch_size,
                 max_length=max_length,
                 pretokenizer=pretokenizer,
-                shuffle=True,
+                shuffle=False,
             )
 
         else:
@@ -317,10 +328,10 @@ class RNNTagger(nn.Module):
         )
         total_loss = total_loss / batch_count
 
-        results["test"]["loss"] = total_loss
         results["test"] = test_results
+        results["test"]["loss"] = total_loss
 
-        return results, total_loss
+        return results
 
     @torch.inference_mode()
     def predict(
