@@ -1,42 +1,43 @@
-import os
-from typing import Callable, Dict, List, Optional, Tuple, Union
+import logging
+from typing import Callable, Dict, List, Optional, Union
 
 import xtagger
 from xtagger.tokenization.base import TokenizerBase
 from xtagger.utils.helpers import is_none, load_pickle, readfile, save_pickle
-
+from xtagger.utils.logging_helpers import suppress_hf_logs, set_global_logging_level
 
 class HFTokenizer(TokenizerBase):
     def __init__(self, name):
+        import transformers
         from transformers import AutoTokenizer
-
+        suppress_hf_logs()
+        logging.getLogger("transformers").setLevel(logging.WARNING)
+        
         hf_tokenizer = AutoTokenizer.from_pretrained(name)
 
         self.start_token = (
-            hf_tokenizer.bos_token if not is_none(hf_tokenizer.bos_token) else hf_tokenizer.cls_token
+            hf_tokenizer.cls_token if not is_none(hf_tokenizer.cls_token) else hf_tokenizer.bos_token
         )
         self.end_token = (
-            hf_tokenizer.eos_token if not is_none(hf_tokenizer.eos_token) else hf_tokenizer.sep_token
+            hf_tokenizer.sep_token if not is_none(hf_tokenizer.sep_token) else hf_tokenizer.eos_token
         )
         self.unk_token = hf_tokenizer.unk_token
         self.pad_token = hf_tokenizer.pad_token
 
-        self.start_token_id = (
-            hf_tokenizer.bos_token_id
-            if not is_none(hf_tokenizer.bos_token_id)
-            else hf_tokenizer.cls_token_id
-        )
-        self.end_token_id = (
-            hf_tokenizer.eos_token_id
-            if not is_none(hf_tokenizer.eos_token_id)
-            else hf_tokenizer.sep_token_id
-        )
-        self.unk_token_id = hf_tokenizer.unk_token_id
-        self.pad_token_id = hf_tokenizer.pad_token_id
+
+        self.start_token_id = hf_tokenizer.convert_tokens_to_ids(self.start_token)
+        self.end_token_id = hf_tokenizer.convert_tokens_to_ids(self.end_token)
+        self.unk_token_id = hf_tokenizer.convert_tokens_to_ids(self.unk_token)
+        self.pad_token_id = hf_tokenizer.convert_tokens_to_ids(self.pad_token)
 
         self.vocab_size = len(hf_tokenizer)
 
-        self.special_tokens = hf_tokenizer.special_tokens_map.values()
+        self.special_tokens = dict(
+            start_token=self.start_token,
+            end_token=self.end_token,
+            pad_token=self.pad_token,
+            unk_token=self.unk_token
+        )
         self.hf_tokenizer = hf_tokenizer
 
     def encode(
