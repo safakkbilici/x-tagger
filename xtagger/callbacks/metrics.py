@@ -1,5 +1,6 @@
 import json
 import os
+import warnings
 from typing import Dict, List, Union
 
 import numpy as np
@@ -7,6 +8,7 @@ import xtagger
 from xtagger.callbacks.metrics_ import *
 from xtagger.utils.helpers import makepath
 
+warnings.filterwarnings("ignore", category=UndefinedMetricWarning)
 
 def metric_results(
     y_true: Union[np.ndarray, List[List[int]]],
