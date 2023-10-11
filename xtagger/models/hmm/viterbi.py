@@ -4,7 +4,7 @@ import numpy as np
 import xtagger
 from tqdm.auto import tqdm
 from xtagger.models.hmm.hmm_utils import get_emission
-from xtagger.utils.regex import EnglishRegExTagger
+from xtagger.models.regex.regex import RegexBase
 
 
 class Viterbi:
@@ -14,8 +14,8 @@ class Viterbi:
         tag2tag_matrix: np.ndarray,
         train_set: List[Tuple[str, str]],
         start: str = ".",
-        morphological: Optional[EnglishRegExTagger] = None,
-        prior: Optional[EnglishRegExTagger] = None,
+        morphological: Optional[RegexBase] = None,
+        prior: Optional[RegexBase] = None,
         indexing: List[str] = ["."],
     ) -> None:
         """

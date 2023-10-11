@@ -8,8 +8,8 @@ from tqdm.auto import tqdm
 from xtagger.callbacks import metrics, metrics_
 from xtagger.models.hmm.hmm_utils import deleted_interpolation, get_transition, get_transition_2
 from xtagger.models.hmm.viterbi import Viterbi
-from xtagger.utils.regex import EnglishRegExTagger
-from xtagger.utils.helpers import save_pickle, load_pickle
+from xtagger.models.regex.regex import RegexBase
+from xtagger.utils.helpers import load_pickle, save_pickle
 from xtagger.utils.validations import (
     validate_eval_metrics,
     validate_morphological_tags,
@@ -21,8 +21,8 @@ class HiddenMarkovModel:
     def __init__(
         self,
         hmm: str = "bigram",
-        morphological: Optional[EnglishRegExTagger] = None,
-        prior: Optional[EnglishRegExTagger] = None,
+        morphological: Optional[RegexBase] = None,
+        prior: Optional[RegexBase] = None,
     ) -> None:
         self._hmm = hmm
         self._morphological = morphological
