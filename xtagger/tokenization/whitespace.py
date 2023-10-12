@@ -6,6 +6,7 @@ from xtagger.tokenization.base import TokenizerBase
 from xtagger.utils.helpers import load_pickle, readfile, save_pickle
 
 
+# TODO: add min count here
 class WhiteSpaceTokenizer(TokenizerBase):
     def __init__(
         self, start_token="[START]", end_token="[END]", unk_token="[UNK]", pad_token="[PAD]"
