@@ -55,3 +55,19 @@ def suppres_print(f):
         return value
 
     return wrapper
+
+
+def padded_argmax_and_flatten(logits: torch.Tensor, pad_tag_id: int) -> torch.Tensor:
+    probabilities = logits.softmax(dim=-1)
+    _, topk_indices = torch.topk(probabilities, 2, dim=-1)
+    max_prob_indices = (
+        torch.where(
+            topk_indices[:, :, 0] == pad_tag_id, topk_indices[:, :, 1], topk_indices[:, :, 0]
+        )
+        .squeeze(dim=0)
+        .flatten()
+    )
+    assert (
+        pad_tag_id not in max_prob_indices
+    ), "If this happens, you think you have solved the bug but you are wrong."
+    return max_prob_indices
