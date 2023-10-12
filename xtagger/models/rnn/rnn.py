@@ -14,7 +14,7 @@ from xtagger.callbacks.metrics import metric_results, write_results
 from xtagger.callbacks.metrics_ import Accuracy, BaseMetric
 from xtagger.tokenization.base import TokenizerBase
 from xtagger.utils.data import LabelEncoder, convert_to_dataloader
-from xtagger.utils.helpers import to_string, to_tensor
+from xtagger.utils.helpers import to_string, to_tensor, padded_argmax_and_flatten
 
 logger = logging.getLogger(__name__)
 
@@ -230,7 +230,7 @@ class RNNTagger(nn.Module):
                 out = self.forward(input_ids=input_ids.long())
                 loss = criterion(out.permute(0, 2, 1).float(), labels.long())
 
-                preds = out.softmax(dim=-1).argmax(dim=-1).squeeze(dim=0).flatten()
+                preds = padded_argmax_and_flatten(out, pad_tag_id=label_encoder.pad_tag_id)
                 ground_truth = labels.contiguous().view(-1)
 
                 non_pad_indices = (ground_truth != label_encoder.pad_tag_id).nonzero()
@@ -305,7 +305,7 @@ class RNNTagger(nn.Module):
                 out = self.forward(input_ids=input_ids.long())
                 loss = criterion(out.permute(0, 2, 1).float(), labels.long())
 
-                preds = out.softmax(dim=-1).argmax(dim=-1).squeeze(dim=0).flatten()
+                preds = padded_argmax_and_flatten(out, pad_tag_id=label_encoder.pad_tag_id)
                 ground_truth = labels.contiguous().view(-1)
 
                 non_pad_indices = (ground_truth != label_encoder.pad_tag_id).nonzero()
@@ -363,7 +363,7 @@ class RNNTagger(nn.Module):
                 input_ids = to_tensor(encoded["input_ids"]).to(device)
                 out = self.forward(input_ids=input_ids.long())
 
-                preds = out.softmax(dim=-1).argmax(dim=-1).squeeze(dim=0).flatten().int().tolist()
+                preds = padded_argmax_and_flatten(out, pad_tag_id=label_encoder.pad_tag_id).int().tolist()
                 preds = list(zip(input_ids.squeeze(dim=0).int().tolist(), preds))
                 preds = list(
                     map(
