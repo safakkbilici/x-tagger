@@ -9,12 +9,12 @@ from xtagger.utils.logging_helpers import set_global_logging_level, suppress_hf_
 
 class HFTokenizer(TokenizerBase):
     def __init__(self, name):
-        import transformers
         from transformers import AutoTokenizer
 
         suppress_hf_logs()
         logging.getLogger("transformers").setLevel(logging.WARNING)
 
+        self.subword = True
         hf_tokenizer = AutoTokenizer.from_pretrained(name)
 
         self.start_token = (
@@ -52,7 +52,9 @@ class HFTokenizer(TokenizerBase):
         pretokenizer: Callable = xtagger.DEFAULT_PRETOKENIZER,
     ):
         if type(sentence) == str:
-            sentence = [sentence]
+            sentence = [pretokenizer(sentence)]
+        else:
+            sentence = [pretokenizer(s) for s in sentence]
 
         if max_length != None:
             encoded = self.hf_tokenizer(
@@ -72,27 +74,27 @@ class HFTokenizer(TokenizerBase):
         input_ids = encoded["input_ids"]
         attention_mask = encoded["attention_mask"]
         word_ids = encoded.word_ids()
-        word_ids = [word_id for word_id in word_ids if not is_none(word_id)]
 
-        return {"input_ids": [input_ids], "word_ids": [word_ids], "attention_mask": attention_mask}
+        return {"input_ids": input_ids, "word_ids": [word_ids], "attention_mask": attention_mask}
 
     def remove_special_tokens(self, tokens: List[str]) -> List[str]:
         return list(filter(lambda x: x not in self.special_tokens, tokens))
 
-    def decode(self, input_ids: Union[int, List[int]], remove_special_tokens: bool = True):
+    def decode(
+        self, input_ids: Union[int, List[int]], remove_special_tokens: bool = True
+    ):
         if type(input_ids) in [int, float]:
             input_ids = [[input_ids]]
 
         elif type(input_ids[0]) in [int, float]:
             input_ids = [input_ids]
-
+        
         decoded = []
         for sequence in input_ids:
             decoded_sequence = []
             for tid in sequence:
                 decoded_sequence.append(self.hf_tokenizer.decode(tid, remove_special_tokens))
             decoded.append(decoded_sequence)
-
         return decoded
 
     def fit(*args, **kwargs):
