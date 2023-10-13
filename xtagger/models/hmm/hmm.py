@@ -1,3 +1,4 @@
+import logging
 import os
 import random
 from typing import List, Optional, Tuple
@@ -16,6 +17,8 @@ from xtagger.utils.validations import (
     validate_prior_tags,
 )
 
+
+logger = logging.getLogger(__name__)
 
 class HiddenMarkovModel:
     def __init__(
@@ -117,9 +120,8 @@ class HiddenMarkovModel:
 
         preds = [pred_pair[1] for pred_pair in tagged_seq]
         ground_truth = [gt_pair[1] for gt_pair in test_run_base]
-        preds_onehot, gt_onehot = metrics.tag2onehot(preds, ground_truth, self._indexing)
 
-        results = metrics.metric_results(gt_onehot, preds_onehot, eval_metrics, self._indexing)
+        results = metrics.metric_results(ground_truth, preds, eval_metrics, self._indexing)
         return results
 
     def predict(
@@ -149,7 +151,7 @@ class HiddenMarkovModel:
             desc="Fitting bigram HMM",
             disable=xtagger.DISABLE_PROGRESS_BAR,
         ) as progressbar:
-            for i, tag1 in enumerate(tqdm(list(self._tags))):
+            for i, tag1 in enumerate(list(self._tags)):
                 for j, tag2 in enumerate(list(self._tags)):
                     p_t1t2, pt1 = get_transition(tag1, tag2, self._train_tagged_words)  # tag2 tag1
                     self._tag2tag_matrix[i, j] = p_t1t2 / pt1
@@ -225,7 +227,7 @@ class HiddenMarkovModel:
                         )
                         progressbar.update()
 
-        print(f"λ1: {lambdas[0]}, λ2: {lambdas[1]}, λ3: {lambdas[2]}")
+        logger.info(f"λ1: {lambdas[0]}, λ2: {lambdas[1]}, λ3: {lambdas[2]}")
 
     def save(self, path: str, name: str) -> None:
         save_pickle(self, os.path.join(path, name + ".model"))
