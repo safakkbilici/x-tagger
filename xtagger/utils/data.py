@@ -1,6 +1,6 @@
 import os
 from collections import Counter
-from typing import Callable, List, Tuple, Union
+from typing import Callable, List, Tuple, Union, Dict
 
 import pandas as pd
 import torch
@@ -67,8 +67,10 @@ class Sampler(Dataset):
         encoded = self.tokenizer.encode(
             sentence=sentence, max_length=self.max_length, pretokenizer=self.pretokenizer
         )
+
         word_ids = encoded["word_ids"][0]
         input_ids = encoded["input_ids"][0]
+        attention_mask = encoded.get("attention_mask", (torch.zeros_like(torch.Tensor(input_ids)) - 1).tolist())
 
         labels = align_labels(
             tokenizer=self.tokenizer,
@@ -76,13 +78,14 @@ class Sampler(Dataset):
             tags=tags,
             word_ids=word_ids,
             input_ids=input_ids,
+            label_all_tokens=True
         )
 
         assert len(input_ids) == len(
             labels
         ), f"Mismatch between tokens and token labels {len(input_ids)} and {len(labels)}"
 
-        return {"input_ids": torch.Tensor(input_ids), "labels": torch.Tensor(labels)}
+        return {"input_ids": torch.Tensor(input_ids), "labels": torch.Tensor(labels), "attention_mask": torch.Tensor(attention_mask)}
 
 
 def align_labels(
@@ -91,22 +94,38 @@ def align_labels(
     tags: List[int],
     word_ids: List[int],
     input_ids: List[int],
+    label_all_tokens: bool = True
 ) -> List[int]:
-    labels = [label_encoder.pad_tag_id]
-    word_ids = Counter(word_ids)
-    word_ids = dict(sorted(word_ids.items(), key=lambda x: x[0]))
+    if not tokenizer.subword:
+        labels = [label_encoder.pad_tag_id]
+        word_ids = Counter(word_ids)
+        word_ids = dict(sorted(word_ids.items(), key=lambda x: x[0]))
 
-    tags_repeat = [
-        [tags[tidx]] * wid_freq for tidx, (wid, wid_freq) in enumerate(word_ids.items())
-    ]
-    tags_repeat = flatten_list(tags_repeat)
-    labels.extend(tags_repeat)
-    labels.append(label_encoder.pad_tag_id)
+        tags_repeat = [
+            [tags[tidx]] * wid_freq for tidx, (wid, wid_freq) in enumerate(word_ids.items())
+        ]
+        tags_repeat = flatten_list(tags_repeat)
+        labels.extend(tags_repeat)
+        labels.append(label_encoder.pad_tag_id)
 
-    pad_length = sum([1 for i in input_ids if i == tokenizer.pad_token_id])
-    labels.extend([label_encoder.pad_tag_id for _ in range(pad_length)])
+        pad_length = sum([1 for i in input_ids if i == tokenizer.pad_token_id])
+        labels.extend([label_encoder.pad_tag_id for _ in range(pad_length)])
+    else:
+        previous_word_idx = None
+        labels= []
+        for word_idx in word_ids:
+            if word_idx is None:
+                labels.append(label_encoder.pad_tag_id)
+            elif word_idx != previous_word_idx:
+                idx = tags[word_idx]
+                labels.append(idx)
+            else:
+                idx = tags[word_idx]
+                labels.append(idx if label_all_tokens else label_encoder.pad_tag_id)
+            previous_word_idx = word_idx
 
     return labels
+
 
 
 def convert_from_dataframe(df: pd.DataFrame) -> List[List[Tuple[str, str]]]:
@@ -165,40 +184,3 @@ def convert_to_dataloader(
 
     dataloader = DataLoader(sampler, batch_size=batch_size, shuffle=shuffle)
     return dataloader
-
-
-# def tokenize_and_align_labels(examples, tokenizer, tags, label_all_tokens):
-#     tokenized_inputs = tokenizer(examples["sentence"], truncation=True, is_split_into_words=True)
-#     labels = []
-#     for i, label in enumerate(examples[f"tags"]):
-#         word_ids = tokenized_inputs.word_ids(batch_index=i)
-#         previous_word_idx = None
-#         label_ids = []
-#         for word_idx in word_ids:
-#             if word_idx is None:
-#                 label_ids.append(-100)
-#             elif word_idx != previous_word_idx:
-#                 idx = tags.index(label[word_idx])
-#                 label_ids.append(idx)
-#             else:
-#                 idx = tags.index(label[word_idx])
-#                 label_ids.append(idx if label_all_tokens else -100)
-#             previous_word_idx = word_idx
-
-#         labels.append(label_ids)
-
-#     tokenized_inputs["labels"] = labels
-#     return tokenized_inputs
-
-# def df_to_hf_dataset(df, tags, tokenizer, device, label_all_tokens=True):
-#     dataset = hfd.Dataset.from_pandas(df)
-#     dataset = dataset.map(
-#         tokenize_and_align_labels,
-#         fn_kwargs = {
-#             'tokenizer': tokenizer,
-#             'tags': tags,
-#             'label_all_tokens': label_all_tokens
-#         },
-#         batched = True
-#     )
-#     return dataset
