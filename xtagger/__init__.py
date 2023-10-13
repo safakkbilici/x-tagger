@@ -24,6 +24,7 @@ from xtagger.callbacks.metrics_ import BaseMetric
 from xtagger.models.hmm.hmm import HiddenMarkovModel
 from xtagger.models.regex.regex import RegexTagger
 from xtagger.models.rnn.rnn import RNNTagger
+from xtagger.models.pretrained_encoder.encoder import PretrainedEncoderTagger
 from xtagger.tokenization.hf_interface import HFTokenizer
 from xtagger.tokenization.whitespace import WhiteSpaceTokenizer
 from xtagger.utils.data import (
@@ -33,6 +34,7 @@ from xtagger.utils.data import (
     convert_from_file,
     convert_to_dataloader,
 )
+from xtagger.utils.pooling import CLSPooler, MaxPooler, MeanPooler, IdentityPooler
 
 IMPLEMENTED_METRICS = [
     F1,
@@ -44,4 +46,11 @@ IMPLEMENTED_METRICS = [
     ClasswiseRecall,
     ClassificationReport,
     BaseMetric,
+]
+
+IMPLEMENTED_POOLERS = [
+    CLSPooler,
+    MaxPooler,
+    MeanPooler,
+    IdentityPooler
 ]
