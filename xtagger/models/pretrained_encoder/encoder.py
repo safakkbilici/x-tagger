@@ -15,7 +15,7 @@ from xtagger.callbacks.metrics_ import Accuracy, BaseMetric
 from xtagger.tokenization.base import TokenizerBase
 from xtagger.utils.data import LabelEncoder, convert_to_dataloader
 from xtagger.utils.helpers import padded_argmax_and_flatten, to_string, to_tensor
-from xtagger.utils.pooling import IdentityPooler
+from xtagger.utils.pooling import IdentityPooler, compute_dimension
 
 logger = logging.getLogger(__name__)
 
@@ -41,14 +41,19 @@ class PretrainedEncoderTagger(nn.Module):
 
         self.dropout = nn.Dropout(dropout)
         self.pooler = pooler
-        self.classifier = nn.Linear(self.config.hidden_size, n_classes)
+        hidden_size = compute_dimension(
+            kernel_size=self.pooler.kernel_size,
+            stride=self.pooler.stride,
+            hidden_size=self.config.hidden_size,
+        )
+        self.classifier = nn.Linear(hidden_size, n_classes)
 
     def forward(
         self, input_ids: torch.Tensor, attention_mask: torch.Tensor, **kwargs
     ) -> torch.Tensor:
         out = self.pretrained_encoder(input_ids=input_ids, attention_mask=attention_mask, **kwargs)
         out = out.last_hidden_state
-        out = self.pooler(out, attention_mask)
+        out = self.pooler(out)
         out = self.dropout(out)
         out = self.classifier(out)
         return out
@@ -135,7 +140,9 @@ class PretrainedEncoderTagger(nn.Module):
 
                     if use_amp:
                         with self._autocast():
-                            out = self.forward(input_ids=input_ids.long(), attention_mask=attention_mask)
+                            out = self.forward(
+                                input_ids=input_ids.long(), attention_mask=attention_mask
+                            )
                             loss = criterion(out.permute(0, 2, 1).float(), labels.long())
 
                         scaler.scale(loss).backward()
