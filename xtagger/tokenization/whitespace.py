@@ -1,3 +1,4 @@
+import logging
 import os
 from typing import Callable, Dict, List, Optional, Tuple, Union
 
@@ -6,11 +7,14 @@ from xtagger.tokenization.base import TokenizerBase
 from xtagger.utils.helpers import load_pickle, readfile, save_pickle
 
 
+logger = logging.getLogger(__name__)
+
 # TODO: add min count here
 class WhiteSpaceTokenizer(TokenizerBase):
     def __init__(
         self, start_token="[START]", end_token="[END]", unk_token="[UNK]", pad_token="[PAD]"
     ) -> None:
+        self.subword = False
         self.start_token = start_token
         self.end_token = end_token
         self.unk_token = unk_token
@@ -50,7 +54,7 @@ class WhiteSpaceTokenizer(TokenizerBase):
                 cid = cid + 1
 
         self.i2w = {v: k for k, v in self.vocab.items()}
-        print(f"Vocab size: {len(self.vocab)}")
+        logger.info(f"Vocab size: {len(self.vocab)}")
         self.vocab_size = len(self.vocab)
 
     def encode(
