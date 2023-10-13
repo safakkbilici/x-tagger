@@ -12,7 +12,7 @@ from xtagger.utils.helpers import flatten_list, load_pickle, save_pickle, to_str
 
 
 class LabelEncoder:
-    def __init__(self, dataset: List[List[Tuple[str, str]]], padding_tag: str = "[PAD]") -> None:
+    def __init__(self, dataset: xtagger.DATASET_TYPE, padding_tag: str = "[PAD]") -> None:
         self.dataset = dataset
         self.padding_tag = padding_tag
         self.reverse_maps = self.__fit()
@@ -43,7 +43,7 @@ class LabelEncoder:
 class Sampler(Dataset):
     def __init__(
         self,
-        dataset: List[List[Tuple[str, str]]],
+        dataset: xtagger.DATASET_TYPE,
         tokenizer: TokenizerBase,
         label_encoder: LabelEncoder,
         max_length: int,
@@ -128,7 +128,7 @@ def align_labels(
 
 
 
-def convert_from_dataframe(df: pd.DataFrame) -> List[List[Tuple[str, str]]]:
+def convert_from_dataframe(df: pd.DataFrame) -> xtagger.DATASET_TYPE:
     data = []
     with tqdm(
         total=len(df), desc="Converting dataset", disable=xtagger.DISABLE_PROGRESS_BAR
@@ -144,7 +144,7 @@ def convert_from_dataframe(df: pd.DataFrame) -> List[List[Tuple[str, str]]]:
 
 def convert_from_file(
     filename: str, sep1: str = " ", sep2: str = "\t", encoding: str = "utf-8"
-) -> List[List[Tuple[str, str]]]:
+) -> xtagger.DATASET_TYPE:
     total = len(open(filename, "r", encoding=encoding).readlines())
     assert sep1 != sep2, "Two separators must not be same"
     data = []
@@ -166,7 +166,7 @@ def convert_from_file(
 
 
 def convert_to_dataloader(
-    dataset: List[List[Tuple[str, str]]],
+    dataset: xtagger.DATASET_TYPE,
     tokenizer: TokenizerBase,
     label_encoder: LabelEncoder,
     max_length: int,
