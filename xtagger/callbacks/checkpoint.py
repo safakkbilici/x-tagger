@@ -1,12 +1,15 @@
+import logging
 from typing import List
 
 import torch
 from xtagger.utils.helpers import makepath
 
+logger = logging.getLogger(__name__)
+
 
 class Checkpointing:
     def __init__(
-        self, on: str = None, mode: str = "max", strategy: bool = True, verbose: int = 0
+        self, on: str = "accuracy", mode: str = "max", strategy: str = "best", verbose: int = 0
     ) -> None:
         self.on = on
         self.mode = mode
@@ -33,7 +36,7 @@ class Checkpointing:
         model.load_state_dict(torch.load(to))
         return model
 
-    def __call__(
+    def save(
         self, model: torch.nn.Module, results: dict, path: str, name: str, indicator_name: str = ""
     ) -> None:
         base_metric = self.on
@@ -52,12 +55,15 @@ class Checkpointing:
             best_model = True
 
         if self.strategy == "best" and best_model:
-            to = makepath(path, name + "_best")
+            to = makepath(path, name + "_best.pt")
             self.save(model, to)
+
+            if self.verbose:
+                logger.info(f"Model is saved to, with {self.on}={result}, to {to}.")
 
         if self.strategy == "every":
-            to = makepath(path, name + "_" + str(indicator_name))
+            to = makepath(path, name + "_" + str(indicator_name) + ".pt")
             self.save(model, to)
 
-        if self.verbose:
-            print(f"Model is saved to {to}")
+            if self.verbose:
+                logger.info(f"Model is saved to, with {self.on}={result}, to {to}.")
