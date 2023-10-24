@@ -6,8 +6,8 @@ import xtagger
 from xtagger.tokenization.base import TokenizerBase
 from xtagger.utils.helpers import load_pickle, readfile, save_pickle
 
-
 logger = logging.getLogger(__name__)
+
 
 # TODO: add min count here
 class WhiteSpaceTokenizer(TokenizerBase):

@@ -80,15 +80,13 @@ class HFTokenizer(TokenizerBase):
     def remove_special_tokens(self, tokens: List[str]) -> List[str]:
         return list(filter(lambda x: x not in self.special_tokens, tokens))
 
-    def decode(
-        self, input_ids: Union[int, List[int]], remove_special_tokens: bool = True
-    ):
+    def decode(self, input_ids: Union[int, List[int]], remove_special_tokens: bool = True):
         if type(input_ids) in [int, float]:
             input_ids = [[input_ids]]
 
         elif type(input_ids[0]) in [int, float]:
             input_ids = [input_ids]
-        
+
         decoded = []
         for sequence in input_ids:
             decoded_sequence = []
