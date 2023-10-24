@@ -17,8 +17,8 @@ from xtagger.utils.validations import (
     validate_prior_tags,
 )
 
-
 logger = logging.getLogger(__name__)
+
 
 class HiddenMarkovModel:
     def __init__(
