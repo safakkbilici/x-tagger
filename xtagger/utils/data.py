@@ -1,6 +1,6 @@
 import os
 from collections import Counter
-from typing import Callable, List, Tuple, Union, Dict
+from typing import Callable, Dict, List, Tuple, Union
 
 import pandas as pd
 import torch
@@ -70,7 +70,9 @@ class Sampler(Dataset):
 
         word_ids = encoded["word_ids"][0]
         input_ids = encoded["input_ids"][0]
-        attention_mask = encoded.get("attention_mask", (torch.zeros_like(torch.Tensor(input_ids)) - 1).tolist())
+        attention_mask = encoded.get(
+            "attention_mask", (torch.zeros_like(torch.Tensor(input_ids)) - 1).tolist()
+        )
 
         labels = align_labels(
             tokenizer=self.tokenizer,
@@ -78,14 +80,18 @@ class Sampler(Dataset):
             tags=tags,
             word_ids=word_ids,
             input_ids=input_ids,
-            label_all_tokens=True
+            label_all_tokens=True,
         )
 
         assert len(input_ids) == len(
             labels
         ), f"Mismatch between tokens and token labels {len(input_ids)} and {len(labels)}"
 
-        return {"input_ids": torch.Tensor(input_ids), "labels": torch.Tensor(labels), "attention_mask": torch.Tensor(attention_mask)}
+        return {
+            "input_ids": torch.Tensor(input_ids),
+            "labels": torch.Tensor(labels),
+            "attention_mask": torch.Tensor(attention_mask),
+        }
 
 
 def align_labels(
@@ -94,7 +100,7 @@ def align_labels(
     tags: List[int],
     word_ids: List[int],
     input_ids: List[int],
-    label_all_tokens: bool = True
+    label_all_tokens: bool = True,
 ) -> List[int]:
     if not tokenizer.subword:
         labels = [label_encoder.pad_tag_id]
@@ -112,7 +118,7 @@ def align_labels(
         labels.extend([label_encoder.pad_tag_id for _ in range(pad_length)])
     else:
         previous_word_idx = None
-        labels= []
+        labels = []
         for word_idx in word_ids:
             if word_idx is None:
                 labels.append(label_encoder.pad_tag_id)
@@ -125,7 +131,6 @@ def align_labels(
             previous_word_idx = word_idx
 
     return labels
-
 
 
 def convert_from_dataframe(df: pd.DataFrame) -> xtagger.DATASET_TYPE:

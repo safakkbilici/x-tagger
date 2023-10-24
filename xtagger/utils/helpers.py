@@ -71,3 +71,9 @@ def padded_argmax_and_flatten(logits: torch.Tensor, pad_tag_id: int) -> torch.Te
         pad_tag_id not in max_prob_indices
     ), "If this happens, you think you have solved the bug but you are wrong."
     return max_prob_indices
+
+
+def log_sum_exp(t: torch.Tensor) -> torch.Tensor:
+    max_score = t[0, t.argmax(dim=1).int().item()]
+    max_score_broadcasted = max_score.view(1, -1).expand(1, t.size()[1])
+    return max_score + torch.log(torch.sum(torch.exp(t - max_score_broadcasted)))

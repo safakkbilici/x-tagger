@@ -41,7 +41,7 @@ class CLSPooler(nn.Module):
         pooled_output = logits[:, 0, :]
         pooled_output = pooled_output.repeat(1, sequence_length, 1)
         return pooled_output
-    
+
 
 class IdentityPooler(nn.Module):
     def __init__(self, *args, **kwargs) -> None:
