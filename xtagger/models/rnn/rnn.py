@@ -14,7 +14,7 @@ from xtagger.callbacks.metrics import metric_results, write_results
 from xtagger.callbacks.metrics_ import Accuracy, BaseMetric
 from xtagger.tokenization.base import TokenizerBase
 from xtagger.utils.data import LabelEncoder, convert_to_dataloader
-from xtagger.utils.helpers import to_string, to_tensor, padded_argmax_and_flatten
+from xtagger.utils.helpers import padded_argmax_and_flatten, to_string, to_tensor
 
 logger = logging.getLogger(__name__)
 
@@ -183,10 +183,10 @@ class RNNTagger(nn.Module):
                 write_results(results=results, output_dir=output_dir)
 
                 if callback != None:
-                    callback(
+                    callback.save(
                         model=self,
-                        results=results,
-                        path=".",
+                        results=results[str(epoch + 1)],
+                        path=output_dir,
                         name="model",
                         indicator_name=str(epoch),
                     )
@@ -363,7 +363,11 @@ class RNNTagger(nn.Module):
                 input_ids = to_tensor(encoded["input_ids"]).to(device)
                 out = self.forward(input_ids=input_ids.long())
 
-                preds = padded_argmax_and_flatten(out, pad_tag_id=label_encoder.pad_tag_id).int().tolist()
+                preds = (
+                    padded_argmax_and_flatten(out, pad_tag_id=label_encoder.pad_tag_id)
+                    .int()
+                    .tolist()
+                )
                 preds = list(zip(input_ids.squeeze(dim=0).int().tolist(), preds))
                 preds = list(
                     map(
