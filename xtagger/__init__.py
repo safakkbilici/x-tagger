@@ -21,9 +21,11 @@ DEFAULT_REGEX_RULE = [
 
 from xtagger.callbacks.metrics_ import *
 from xtagger.callbacks.metrics_ import BaseMetric
+from xtagger.callbacks.checkpoint import Checkpointing
 from xtagger.models.hmm.hmm import HiddenMarkovModel
 from xtagger.models.regex.regex import RegexTagger
 from xtagger.models.rnn.rnn import RNNTagger
+from xtagger.models.rnn.bilstm_crf import BiLSTMCRFTagger
 from xtagger.models.pretrained_encoder.encoder import PretrainedEncoderTagger
 from xtagger.tokenization.hf_interface import HFTokenizer
 from xtagger.tokenization.whitespace import WhiteSpaceTokenizer
