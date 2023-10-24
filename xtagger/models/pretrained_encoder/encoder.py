@@ -175,10 +175,10 @@ class PretrainedEncoderTagger(nn.Module):
                 write_results(results=results, output_dir=output_dir)
 
                 if callback != None:
-                    callback(
+                    callback.save(
                         model=self,
                         results=results,
-                        path=".",
+                        path=output_dir,
                         name="model",
                         indicator_name=str(epoch),
                     )
