@@ -5,6 +5,16 @@ from tqdm.auto import tqdm
 
 
 def get_emission(word: str, tag: str, train_bag: List[Tuple[str, str]]) -> Tuple[int, int]:
+    """Computes emission probability
+
+    Args:
+        word (str): for a given word/token
+        tag (tag): for a given tag
+        train_bag (List[Tuple[str, str]]): given sequence
+
+    Returns:
+        result (Tuple[int, int]): C(w | T) and C(T)
+    """
     tag_list = [pair for pair in train_bag if pair[1] == tag]
     count_tag = len(tag_list)
     w_given_tag_list = [pair[0] for pair in tag_list if pair[0] == word]
@@ -13,6 +23,16 @@ def get_emission(word: str, tag: str, train_bag: List[Tuple[str, str]]) -> Tuple
 
 
 def get_transition(tag1: str, tag2: str, train_bag: List[Tuple[str, str]]) -> Tuple[int, int]:
+    """Computes transition probability in bi-gram fashion
+
+    Args:
+        tag1 (str): uni-gram tag
+        tag2 (tag): bi-gram tag
+        train_bag (List[Tuple[str, str]]): given sequence
+
+    Returns:
+        result (Tuple[int, int]): C(T1 | T2) and C(T1)
+    """
     tags = [pair[1] for pair in train_bag]
     count_tag1 = len([t for t in tags if t == tag1])
     count_tag1_tag2 = 0
@@ -25,6 +45,17 @@ def get_transition(tag1: str, tag2: str, train_bag: List[Tuple[str, str]]) -> Tu
 def get_transition_2(
     tag1: str, tag2: str, tag3: str, train_bag: List[Tuple[str, str]]
 ) -> Tuple[int, int]:
+    """Computes transition probability in tri-gram fashion
+
+    Args:
+        tag1 (str): uni-gram tag
+        tag2 (tag): bi-gram tag
+        tag3 (tag): tri-gram tag
+        train_bag (List[Tuple[str, str]]): given sequence
+
+    Returns:
+        result (Tuple[int, int]): C(T1 | T2 | T3) and C(T1 | T2)
+    """
     tags = [pair[1] for pair in train_bag]
     count_tag1_tag2 = 0
     for idx in range(len(tags) - 1):
@@ -42,8 +73,18 @@ def get_transition_2(
 
 
 def deleted_interpolation(
-    tags: str, train_tagged_words: List[Tuple[str, str]], t: tqdm
+    tags: List[str], train_tagged_words: List[Tuple[str, str]], t: tqdm
 ) -> List[int]:
+    """Computes transition probabilities with interpolation
+
+    Args:
+        tags (List[str]): list of tags
+        train_tagged_words (List[Tuple[str, str]]): given sequence
+        t (tqdm): the progress bar variable where this method had been called
+
+    Returns:
+        result (List[int]): λ_1 , λ_2 , λ_3
+    """
     lambdas = [0] * 3
     for i, tag1 in enumerate(list(tags)):
         for j, tag2 in enumerate(list(tags)):

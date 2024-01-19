@@ -1,7 +1,7 @@
 import logging
 import os
 import random
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Literal
 
 import numpy as np
 import xtagger
@@ -23,10 +23,18 @@ logger = logging.getLogger(__name__)
 class HiddenMarkovModel:
     def __init__(
         self,
-        hmm: str = "bigram",
+        hmm: Literal["bigram", "trigram", "deleted_interpolation"] = "bigram",
         morphological: Optional[RegexBase] = None,
         prior: Optional[RegexBase] = None,
     ) -> None:
+        """Main class for Hidden Markov Model Sequence Labeling model
+
+        Args:
+            hmm (str): the type of the HMM model
+            morphological (Optional[RegexBase]): morphological sequence labeling model after decoding if
+                probability is zero (not observed)
+            prior (Optional[RegexBase]): prior sequence labeling model before decoding if computing time is a concern
+        """
         self._hmm = hmm
         self._morphological = morphological
         self._prior = prior
@@ -43,6 +51,12 @@ class HiddenMarkovModel:
         self._pad_token = None
 
     def fit(self, train_set: xtagger.DATASET_TYPE, pad_token: str = ".") -> None:
+        """Computes transition matrices
+
+        Args:
+            train_set (xtagger.DATASET_TYPE): training dataset
+            pad_token (str): padding string
+        """
         self._train_set = train_set
         self._train_tagged_words = [tup for sent in self._train_set for tup in sent]
         self._tags = {tag for word, tag in self._train_tagged_words}
@@ -78,12 +92,22 @@ class HiddenMarkovModel:
         morphological: bool = False,
         prior: bool = False,
     ) -> dict:
-        # Evaluation on full test set takes soooooo long
-        # because it calls viterbi decoder with O(n^2) with bigram extension
-        # O(n^3) with trigram extension
+        """Evaluates the model on given test_set
+        Evaluation on full test set takes so fucking long
+        because it calls viterbi decoder in O(n^2) with bi-gram, in (O^3) with tri-gram
+        Take uniformly distributed 30 test sample with random_size or wait
 
-        # take uniformly distributed 30 test sample with random_size or wait
+        Args:
+            test_set (xtagger.DATASET_TYPE): testing dataset
+            random_size (int): if user wants to sample from their dataset to evaluate
+            seed (int): making random sampling deterministic
+            eval_metrics (List[str | metrics_.BaseMetric]): evaluation metrics
+            morphological (bool): enabling morphological sequence labeler
+            prior (bool): enabling prior sequence labeler
 
+        Returns:
+            results (dict): computed metrics' results
+        """
         self._test_set = test_set
 
         validate_eval_metrics(eval_metrics)
@@ -127,6 +151,16 @@ class HiddenMarkovModel:
     def predict(
         self, words: List[str], morphological: bool = False, prior: bool = False
     ) -> List[Tuple[str, str]]:
+        """Computes emission probabilities with a Viterbi Decoder
+
+        Args:
+            words (List[str]): list of tokens/words to label
+            morphological (bool): enabling morphological sequence labeler
+            prior (bool): enabling prior sequence labeler
+
+        Returns:
+            tagged_seq (List[Tuple[str, str]]): list of tagged words/tokens
+        """
         viterbi_decoder = Viterbi(
             words=words,
             tag2tag_matrix=self._tag2tag_matrix,
@@ -230,8 +264,23 @@ class HiddenMarkovModel:
         logger.info(f"λ1: {lambdas[0]}, λ2: {lambdas[1]}, λ3: {lambdas[2]}")
 
     def save(self, path: str, name: str) -> None:
+        """Serializes the model
+
+        Args:
+            path (str): path to save
+            name (str): name for the model
+        """
         save_pickle(self, os.path.join(path, name + ".model"))
 
     @staticmethod
     def load(path: str, name: str) -> "HiddenMarkovModel":
+        """Loads the serialized model
+
+        Args:
+            path (str): path to read
+            name (str): name for the model
+
+        Returns:
+            model (HiddenMarkovModel): serialized model
+        """
         return load_pickle(os.path.join(path, name))
