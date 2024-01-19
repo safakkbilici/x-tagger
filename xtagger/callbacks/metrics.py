@@ -17,6 +17,17 @@ def metric_results(
     eval_metrics: List[BaseMetric],
     tags: List[str],
 ) -> Dict[str, Dict[str, float] | float]:
+    """Computes selected metrics regarding given y_true and y_pred
+
+    Args:
+        y_true (List[float]): list of your target values
+        y_pred (List[float]): list of your predicted values
+        eval_metrics (List[BaseMetric]): list of eval metric class
+        tags (Optional[List[str]]): list of tag names regarding values in y_true and y_pred
+
+    Returns:
+        results (Dict[str, Dict[str, float] | float]): dictionary of metric values with their names
+    """
     results = {}
 
     for metric in eval_metrics:
@@ -24,7 +35,13 @@ def metric_results(
     return results
 
 
-def write_results(results, output_dir):
+def write_results(results: Dict[str, Dict[str, float] | float], output_dir: str):
+    """Writes metric results into output_dir/eval/results.json
+
+    Args:
+        results (Dict[str, Dict[str, float] | float]): computed metrics
+        output_dir (str): directory to save
+    """
     if not os.path.isdir(makepath(output_dir, "eval")):
         os.mkdir(makepath(output_dir, "eval"))
 

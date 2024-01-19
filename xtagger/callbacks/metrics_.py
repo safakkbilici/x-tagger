@@ -1,7 +1,6 @@
 import warnings
 from typing import Any, Dict, List, Optional
 
-import numpy as np
 from sklearn.exceptions import UndefinedMetricWarning
 from sklearn.metrics import (
     accuracy_score,
@@ -16,13 +15,20 @@ warnings.filterwarnings("ignore", category=UndefinedMetricWarning)
 
 class BaseMetric:
     def __init__(
-        self, y_true: List[float], y_pred: List[float], tags: Optional[List[str]] = None
+            self, y_true: List[float], y_pred: List[float], tags: Optional[List[str]] = None
     ) -> None:
+        """Abstract class for implementing your metrics
+
+        Args:
+            y_true (List[float]): list of your target values
+            y_pred (List[float]): list of your predicted values
+            tags (Optional[List[str]]): list of tag names regarding values in y_true and y_pred
+        """
         self.y_true = y_true
         self.y_pred = y_pred
         self.tags = tags
 
-    def __call__(self, *args: Any, **kwds: Any) -> Any:
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
         pass
 
 
@@ -32,9 +38,21 @@ class ClasswiseF1(BaseMetric):
     def __init__(
         self, y_true: List[float], y_pred: List[float], tags: List[str] | None = None
     ) -> None:
+        """Implements abstract base metric class
+
+        Args:
+            y_true (List[float]): list of your target values
+            y_pred (List[float]): list of your predicted values
+            tags (Optional[List[str]]): list of tag names regarding values in y_true and y_pred
+        """
         super().__init__(y_true, y_pred, tags)
 
     def __call__(self) -> Dict[str, float]:
+        """Computes class-wise f1 score
+
+        Returns:
+            result (Dict[str, float]): dict with value of class-wise f1 score, key of metric name
+        """
         output_dict = classification_report(
             self.y_true, self.y_pred, target_names=self.tags, output_dict=True
         )
@@ -51,9 +69,21 @@ class ClasswiseRecall(BaseMetric):
     def __init__(
         self, y_true: List[float], y_pred: List[float], tags: List[str] | None = None
     ) -> None:
+        """Implements abstract base metric class
+
+        Args:
+            y_true (List[float]): list of your target values
+            y_pred (List[float]): list of your predicted values
+            tags (Optional[List[str]]): list of tag names regarding values in y_true and y_pred
+        """
         super().__init__(y_true, y_pred, tags)
 
     def __call__(self) -> Dict[str, float]:
+        """Computes class-wise recall score
+
+        Returns:
+            result (Dict[str, float]): dict with value of class-wise recall score, key of metric name
+        """
         output_dict = classification_report(
             self.y_true, self.y_pred, target_names=self.tags, output_dict=True
         )
@@ -70,9 +100,21 @@ class ClasswisePrecision(BaseMetric):
     def __init__(
         self, y_true: List[float], y_pred: List[float], tags: List[str] | None = None
     ) -> None:
+        """Implements abstract base metric class
+
+        Args:
+            y_true (List[float]): list of your target values
+            y_pred (List[float]): list of your predicted values
+            tags (Optional[List[str]]): list of tag names regarding values in y_true and y_pred
+        """
         super().__init__(y_true, y_pred, tags)
 
     def __call__(self) -> Dict[str, float]:
+        """Computes class-wise precision score
+
+        Returns:
+            result (Dict[str, float]): dict with value of class-wise precision score, key of metric name
+        """
         output_dict = classification_report(
             self.y_true, self.y_pred, target_names=self.tags, output_dict=True
         )
@@ -89,9 +131,21 @@ class Recall(BaseMetric):
     def __init__(
         self, y_true: List[float], y_pred: List[float], tags: List[str] | None = None
     ) -> None:
+        """Implements abstract base metric class
+
+        Args:
+            y_true (List[float]): list of your target values
+            y_pred (List[float]): list of your predicted values
+            tags (Optional[List[str]]): list of tag names regarding values in y_true and y_pred
+        """
         super().__init__(y_true, y_pred, tags)
 
     def __call__(self) -> Dict[str, float]:
+        """Computes recall score
+
+        Returns:
+            result (Dict[str, float]): dict with value of recall score, key of metric name
+        """
         recall_micro = recall_score(self.y_true, self.y_pred, average="micro")
         recall_macro = recall_score(self.y_true, self.y_pred, average="macro")
         recall_w = recall_score(self.y_true, self.y_pred, average="weighted")
@@ -104,9 +158,21 @@ class Precision(BaseMetric):
     def __init__(
         self, y_true: List[float], y_pred: List[float], tags: List[str] | None = None
     ) -> None:
+        """Implements abstract base metric class
+
+        Args:
+            y_true (List[float]): list of your target values
+            y_pred (List[float]): list of your predicted values
+            tags (Optional[List[str]]): list of tag names regarding values in y_true and y_pred
+        """
         super().__init__(y_true, y_pred, tags)
 
     def __call__(self) -> Dict[str, float]:
+        """Computes precision score
+
+        Returns:
+            result (Dict[str, float]): dict with value of precision score, key of metric name
+        """
         precision_micro = precision_score(self.y_true, self.y_pred, average="micro")
         precision_macro = precision_score(self.y_true, self.y_pred, average="macro")
         precision_w = precision_score(self.y_true, self.y_pred, average="weighted")
@@ -119,9 +185,21 @@ class F1(BaseMetric):
     def __init__(
         self, y_true: List[float], y_pred: List[float], tags: List[str] | None = None
     ) -> None:
+        """Implements abstract base metric class
+
+        Args:
+            y_true (List[float]): list of your target values
+            y_pred (List[float]): list of your predicted values
+            tags (Optional[List[str]]): list of tag names regarding values in y_true and y_pred
+        """
         super().__init__(y_true, y_pred, tags)
 
     def __call__(self) -> Dict[str, float]:
+        """Computes f1 score
+
+        Returns:
+            result (Dict[str, float]): dict with value of f1 score, key of metric name
+        """
         f1_micro = f1_score(self.y_true, self.y_pred, average="micro")
         f1_macro = f1_score(self.y_true, self.y_pred, average="macro")
         f1_w = f1_score(self.y_true, self.y_pred, average="weighted")
@@ -134,9 +212,21 @@ class Accuracy(BaseMetric):
     def __init__(
         self, y_true: List[float], y_pred: List[float], tags: List[str] | None = None
     ) -> None:
+        """Implements abstract base metric class
+
+        Args:
+            y_true (List[float]): list of your target values
+            y_pred (List[float]): list of your predicted values
+            tags (Optional[List[str]]): list of tag names regarding values in y_true and y_pred
+        """
         super().__init__(y_true, y_pred, tags)
 
     def __call__(self) -> float:
+        """Computes accuracy score
+
+        Returns:
+            result (float): accuracy score value
+        """
         acc = accuracy_score(self.y_true, self.y_pred)
         return acc
 
